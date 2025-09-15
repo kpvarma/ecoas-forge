@@ -14,6 +14,8 @@ export interface Request {
   created_at: string;
   updated_at: string;
   request_status_logs: StatusLog[];
+  owner_status_logs?: StatusLog[];
+  status_logs?: StatusLog[];
   parent_id?: string;
   children?: Request[];
 }

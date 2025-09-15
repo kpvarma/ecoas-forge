@@ -15,9 +15,9 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Request } from "@/types";
+import { StatusBadge } from "@/components/StatusBadge";
 
 // Mock data for the specific request
 const mockRequestDetail: Request = {
@@ -38,6 +38,16 @@ const mockRequestDetail: Request = {
     { status: "parsed", timestamp: "2024-01-15T11:15:00Z", user: "System" },
     { status: "template_generated", timestamp: "2024-01-15T12:00:00Z", user: "System" }
   ],
+  owner_status_logs: [
+    { status: "unassigned", timestamp: "2024-01-15T10:30:00Z", user: "System" },
+    { status: "assigned", timestamp: "2024-01-15T11:30:00Z", user: "Admin" },
+    { status: "approved", timestamp: "2024-01-15T13:45:00Z", user: "Jane Smith" }
+  ],
+  status_logs: [
+    { status: "pending", timestamp: "2024-01-15T10:30:00Z", user: "System" },
+    { status: "in_progress", timestamp: "2024-01-15T11:15:00Z", user: "System" },
+    { status: "completed", timestamp: "2024-01-15T14:20:00Z", user: "Jane Smith" }
+  ],
   children: [
     {
       id: "REQ-2024-001-1",
@@ -55,36 +65,6 @@ const mockRequestDetail: Request = {
   ]
 };
 
-const StatusBadge = ({ status, type = "request" }: { status: string; type?: "request" | "owner" | "general" }) => {
-  const getVariant = () => {
-    if (type === "owner") {
-      switch (status) {
-        case "approved": return "bg-success/10 text-success border-success/20";
-        case "assigned": return "bg-warning/10 text-warning border-warning/20";
-        case "rejected": return "bg-error/10 text-error border-error/20";
-        case "unassigned": return "bg-muted text-muted-foreground border-border";
-        default: return "bg-muted text-muted-foreground border-border";
-      }
-    }
-    
-    switch (status) {
-      case "completed": case "template_generated": case "parsed":
-        return "bg-success/10 text-success border-success/20";
-      case "in_progress": case "queued": case "assigned":
-        return "bg-warning/10 text-warning border-warning/20";
-      case "failed": case "error": case "parsing_failed": case "rejected":
-        return "bg-error/10 text-error border-error/20";
-      default:
-        return "bg-muted text-muted-foreground border-border";
-    }
-  };
-
-  return (
-    <Badge variant="outline" className={getVariant()}>
-      {status.replace(/_/g, " ")}
-    </Badge>
-  );
-};
 
 const DetailItem = ({ icon: Icon, label, value, action }: {
   icon: any;
@@ -158,9 +138,14 @@ export function RequestDetail() {
                   value={new Date(request.created_at).toLocaleDateString()}
                 />
                 <DetailItem
-                  icon={Mail}
-                  label="Initiator Email"
-                  value={request.initiator_email}
+                  icon={User}
+                  label="Initiator"
+                  value={
+                    <div>
+                      <div className="font-medium">John Doe</div>
+                      <div className="text-sm text-muted-foreground">{request.initiator_email}</div>
+                    </div>
+                  }
                 />
                 <DetailItem
                   icon={Mail}
@@ -297,23 +282,71 @@ export function RequestDetail() {
             <CardHeader>
               <CardTitle>Status Timeline</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {request.request_status_logs.map((log, index) => (
-                <div key={index} className="flex items-start space-x-3">
-                  <div className="flex-shrink-0 w-2 h-2 rounded-full bg-primary mt-2"></div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium capitalize">
-                      {log.status.replace(/_/g, " ")}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {new Date(log.timestamp).toLocaleString()}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      by {log.user}
-                    </div>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Request Status Timeline */}
+                <div>
+                  <h4 className="font-medium mb-4 text-sm text-muted-foreground">Request Status</h4>
+                  <div className="space-y-4">
+                    {request.request_status_logs.map((log, index) => (
+                      <div key={index} className="flex items-start space-x-3">
+                        <div className="flex-shrink-0 w-2 h-2 rounded-full bg-primary mt-2"></div>
+                        <div className="flex-1 min-w-0">
+                          <StatusBadge status={log.status} type="request" />
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {new Date(log.timestamp).toLocaleString()}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            by {log.user}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              ))}
+
+                {/* Owner Status Timeline */}
+                <div>
+                  <h4 className="font-medium mb-4 text-sm text-muted-foreground">Owner Status</h4>
+                  <div className="space-y-4">
+                    {request.owner_status_logs?.map((log, index) => (
+                      <div key={index} className="flex items-start space-x-3">
+                        <div className="flex-shrink-0 w-2 h-2 rounded-full bg-primary mt-2"></div>
+                        <div className="flex-1 min-w-0">
+                          <StatusBadge status={log.status} type="owner" />
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {new Date(log.timestamp).toLocaleString()}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            by {log.user}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Overall Status Timeline */}
+                <div>
+                  <h4 className="font-medium mb-4 text-sm text-muted-foreground">Overall Status</h4>
+                  <div className="space-y-4">
+                    {request.status_logs?.map((log, index) => (
+                      <div key={index} className="flex items-start space-x-3">
+                        <div className="flex-shrink-0 w-2 h-2 rounded-full bg-primary mt-2"></div>
+                        <div className="flex-1 min-w-0">
+                          <StatusBadge status={log.status} type="general" />
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {new Date(log.timestamp).toLocaleString()}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            by {log.user}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
