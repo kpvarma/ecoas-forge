@@ -2,17 +2,13 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building2, Shield } from "lucide-react";
-
 export function Login() {
   const navigate = useNavigate();
-
   const handleLogin = () => {
     // For now, just navigate to dashboard
     navigate("/dashboard");
   };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-light via-background to-accent flex items-center justify-center p-4">
+  return <div className="min-h-screen bg-gradient-to-br from-primary-light via-background to-accent flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo and Title */}
         <div className="text-center mb-8">
@@ -32,11 +28,7 @@ export function Login() {
             </p>
           </CardHeader>
           <CardContent className="space-y-6">
-            <Button 
-              onClick={handleLogin}
-              className="w-full h-12 text-base font-medium"
-              size="lg"
-            >
+            <Button onClick={handleLogin} className="w-full h-12 text-base font-medium" size="lg">
               <Shield className="h-5 w-5 mr-3" />
               Login with Entegris SSO
             </Button>
@@ -51,9 +43,8 @@ export function Login() {
 
         {/* Footer */}
         <div className="text-center mt-8 text-sm text-muted-foreground">
-          <p>© 2024 Entegris. All rights reserved.</p>
+          <p>© 2025 Entegris. All rights reserved.</p>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 }
