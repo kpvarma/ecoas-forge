@@ -1,4 +1,4 @@
-import { Outlet, NavLink, useLocation } from "react-router-dom";
+import { Outlet, NavLink, useLocation, Link } from "react-router-dom";
 import { 
   Home, 
   FileText, 
@@ -15,6 +15,7 @@ const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: Home },
   { name: "Requests", href: "/requests", icon: FileText },
   { name: "Templates", href: "/templates", icon: FolderOpen },
+  { name: "Users", href: "/users", icon: User },
 ];
 
 export function Layout() {
@@ -63,10 +64,10 @@ export function Layout() {
               <Settings className="h-4 w-4" />
             </Button>
             <div className="flex items-center space-x-3 pl-4 border-l border-border">
-              <div className="flex items-center space-x-2">
+              <Link to="/profile" className="flex items-center space-x-2 hover:text-primary transition-colors">
                 <User className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm font-medium">Admin User</span>
-              </div>
+              </Link>
               <Button variant="ghost" size="sm">
                 <LogOut className="h-4 w-4" />
               </Button>

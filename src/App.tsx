@@ -11,6 +11,8 @@ import { Detail_2 } from "./pages/Detail_2";
 import { Approval } from "./pages/Approval";
 import { Templates } from "./pages/Templates";
 import { NewTemplate } from "./pages/NewTemplate";
+import { Users } from "./pages/Users";
+import { Profile } from "./pages/Profile";
 import { Layout } from "./components/Layout";
 import NotFound from "./pages/NotFound";
 
@@ -41,6 +43,14 @@ const App = () => (
           <Route path="/templates" element={<Layout />}>
             <Route index element={<Templates />} />
             <Route path="new" element={<NewTemplate />} />
+          </Route>
+
+          <Route path="/users" element={<Layout />}>
+            <Route index element={<Users />} />
+          </Route>
+
+          <Route path="/profile" element={<Layout />}>
+            <Route index element={<Profile />} />
           </Route>
           
           {/* Redirect /login to root */}
