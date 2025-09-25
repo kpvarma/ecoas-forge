@@ -175,7 +175,7 @@ export function NewTemplate() {
                     <SelectValue placeholder="Select owner or leave unassigned" />
                   </SelectTrigger>
                   <SelectContent className="bg-background border border-border">
-                    <SelectItem value="">Unassigned</SelectItem>
+                    <SelectItem value="unassigned">Unassigned</SelectItem>
                     {mockUsers.map((user) => (
                       <SelectItem key={user} value={user}>
                         <div className="flex items-center space-x-2">
