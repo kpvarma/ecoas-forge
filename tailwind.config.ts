@@ -13,6 +13,9 @@ export default {
       },
     },
     extend: {
+      height: {
+        '144': '36rem', // 576px - 50% more than h-96 (384px)
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, FileText, Eye, Download, Check, X, ChevronDown, ChevronUp } from "lucide-react";
+import { ArrowLeft, FileText, Eye, Download, Check, X, ChevronDown, ChevronUp, Edit, FileText as FileIcon } from "lucide-react";
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -145,6 +147,8 @@ export function Detail_2() {
   const { id } = useParams();
   const request = mockRequestDetail;
   const [showDetails, setShowDetails] = useState(false);
+  const [xmlEditMode, setXmlEditMode] = useState(false);
+  const [xmlContent, setXmlContent] = useState(mockDocumentData.xmlContent);
 
   return (
     <div className="p-6 space-y-6">
@@ -159,6 +163,16 @@ export function Detail_2() {
         <div className="flex-1">
           <h1 className="text-3xl font-bold">{request.id}</h1>
           <p className="text-muted-foreground mt-1">{request.document_name}</p>
+          <div className="flex items-center gap-4 mt-2">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Status:</span>
+              <StatusBadge status={request.status} type="status" />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Approval:</span>
+              <StatusBadge status={request.owner_status} type="approval" />
+            </div>
+          </div>
         </div>
       </div>
 
@@ -172,27 +186,30 @@ export function Detail_2() {
             </div>
             <div className="flex items-center space-x-2">
               <Button 
+                size="sm"
                 className="bg-green-600 hover:bg-green-700 text-white"
                 onClick={() => console.log('Approve clicked')}
               >
-                <Check className="h-4 w-4 mr-2" />
+                <Check className="h-3 w-3 mr-1" />
                 Approve
               </Button>
               <Button 
+                size="sm"
                 className="bg-red-600 hover:bg-red-700 text-white"
                 onClick={() => console.log('Reject clicked')}
               >
-                <X className="h-4 w-4 mr-2" />
+                <X className="h-3 w-3 mr-1" />
                 Reject
               </Button>
               <Button
                 variant="outline"
+                size="sm"
                 onClick={() => setShowDetails(!showDetails)}
               >
                 {showDetails ? (
-                  <ChevronUp className="h-4 w-4" />
+                  <ChevronUp className="h-3 w-3" />
                 ) : (
-                  <ChevronDown className="h-4 w-4" />
+                  <ChevronDown className="h-3 w-3" />
                 )}
               </Button>
             </div>
@@ -254,43 +271,82 @@ export function Detail_2() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold">PDF Document</h3>
-                <div className="flex space-x-2">
-                  <Button variant="outline" size="sm">
-                    <Eye className="h-4 w-4 mr-2" />
-                    View Full
+                <div className="flex space-x-1">
+                  <Button variant="outline" size="sm" className="h-7 px-2">
+                    <Eye className="h-3 w-3 mr-1" />
+                    View
                   </Button>
-                  <Button variant="outline" size="sm">
-                    <Download className="h-4 w-4 mr-2" />
+                  <Button variant="outline" size="sm" className="h-7 px-2">
+                    <Download className="h-3 w-3 mr-1" />
                     Download
                   </Button>
                 </div>
               </div>
-              <div className="border rounded-lg p-4 bg-muted/50">
-                <iframe
-                  src={mockDocumentData.pdfUrl}
-                  className="w-full h-96 rounded border"
-                  title="PDF Document Viewer"
-                />
-              </div>
+              <Card className="border rounded-lg">
+                <CardContent className="p-4">
+                  <iframe
+                    src={mockDocumentData.pdfUrl}
+                    className="w-full h-144 rounded border"
+                    title="PDF Document Viewer"
+                  />
+                </CardContent>
+              </Card>
             </div>
 
             {/* XML Content */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold">XML Template</h3>
-                <div className="flex items-center space-x-2">
-                  <StatusBadge status="generated" type="document" />
-                  <Button variant="outline" size="sm">
-                    <Eye className="h-4 w-4 mr-2" />
-                    View Template
-                  </Button>
+                <div className="flex items-center space-x-1">
+                  <div className="flex border rounded-md">
+                    <Button
+                      variant={!xmlEditMode ? "default" : "ghost"}
+                      size="sm"
+                      className="h-7 px-2 rounded-r-none"
+                      onClick={() => setXmlEditMode(false)}
+                    >
+                      <FileIcon className="h-3 w-3 mr-1" />
+                      Read
+                    </Button>
+                    <Button
+                      variant={xmlEditMode ? "default" : "ghost"}
+                      size="sm"
+                      className="h-7 px-2 rounded-l-none"
+                      onClick={() => setXmlEditMode(true)}
+                    >
+                      <Edit className="h-3 w-3 mr-1" />
+                      Edit
+                    </Button>
+                  </div>
                 </div>
               </div>
-              <div className="border rounded-lg">
-                <div className="bg-gray-900 text-gray-100 p-4 rounded-lg text-sm overflow-auto max-h-96">
-                  <pre className="whitespace-pre-wrap">{mockDocumentData.xmlContent}</pre>
-                </div>
-              </div>
+              <Card className="border rounded-lg">
+                <CardContent className="p-0">
+                  {xmlEditMode ? (
+                    <textarea
+                      value={xmlContent}
+                      onChange={(e) => setXmlContent(e.target.value)}
+                      className="w-full h-144 p-4 font-mono text-sm border-0 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-ring"
+                      placeholder="Edit XML content here..."
+                    />
+                  ) : (
+                    <div className="h-144 overflow-auto">
+                      <SyntaxHighlighter
+                        language="xml"
+                        style={tomorrow}
+                        className="!m-0 !bg-transparent"
+                        customStyle={{
+                          fontSize: '12px',
+                          lineHeight: '1.4',
+                          padding: '16px'
+                        }}
+                      >
+                        {xmlContent}
+                      </SyntaxHighlighter>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
           </div>
         </CardContent>
