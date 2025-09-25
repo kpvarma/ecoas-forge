@@ -7,6 +7,7 @@ import { Login } from "./pages/Login";
 import { Dashboard } from "./pages/Dashboard";
 import { Requests } from "./pages/Requests";
 import { RequestDetail } from "./pages/RequestDetail";
+import { Detail_2 } from "./pages/Detail_2";
 import { Approval } from "./pages/Approval";
 import { Templates } from "./pages/Templates";
 import { Layout } from "./components/Layout";
@@ -32,6 +33,7 @@ const App = () => (
           <Route path="/requests" element={<Layout />}>
             <Route index element={<Requests />} />
             <Route path=":id" element={<RequestDetail />} />
+            <Route path=":id/detail2" element={<Detail_2 />} />
             <Route path=":id/approval" element={<Approval />} />
           </Route>
           

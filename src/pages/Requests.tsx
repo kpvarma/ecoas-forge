@@ -30,6 +30,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Request, FilterOptions } from "@/types";
 import { StatusBadge } from "@/components/StatusBadge";
 
@@ -64,15 +71,15 @@ const mockUsers = {
 // Generate comprehensive mock data
 const generateMockRequests = (): Request[] => {
   const requests: Request[] = [];
-  const owners = ["Jane Smith", "Mike Johnson", "Sarah Davis", "Tom Wilson", null];
+  const owners = ["Jane Smith", "Mike Johnson", "Sarah Davis", "Tom Wilson", null, null]; // More null values for unassigned
   const statuses = ["completed", "in_progress", "pending", "failed"];
   const ownerStatuses = ["approved", "assigned", "unassigned", "rejected", "retried"];
-  const requestStatuses = ["parsed", "template_generated", "parsing_failed", "queued", "error"];
+  const requestStatuses = ["parsed", "template_generated", "parsing_failed", "queued", "error", "completed"];
   
   const subjects = [
     "Weekly Chemical Shipment Analysis Request",
-    "Monthly Quality Control Batch Review",
-    "Quarterly Material Certification Request", 
+    "Monthly Quality Control Batch Review", 
+    "Quarterly Material Certification Request",
     "Emergency Chemical Analysis Protocol",
     "Annual Compliance Documentation Review",
     "Bi-Weekly Production Quality Assessment",
@@ -95,30 +102,45 @@ const generateMockRequests = (): Request[] => {
     
     const owner = owners[Math.floor(Math.random() * owners.length)];
     const status = statuses[Math.floor(Math.random() * statuses.length)];
-    const ownerStatus = owner ? ownerStatuses.slice(1)[Math.floor(Math.random() * (ownerStatuses.length - 1))] : "unassigned";
+    const ownerStatus = owner ? ownerStatuses.filter(s => s !== "unassigned")[Math.floor(Math.random() * 4)] : "unassigned";
     
     const children: Request[] = [];
+    
+    // Determine overall request status based on children completion
+    let overallRequestStatus = "pending";
+    const childStatuses: string[] = [];
     
     for (let j = 1; j <= numChildren; j++) {
       const docType = documentTypes[Math.floor(Math.random() * documentTypes.length)];
       const batch = String.fromCharCode(65 + Math.floor(Math.random() * 26)) + (Math.floor(Math.random() * 999) + 100);
       const childCreatedDate = new Date(createdDate.getTime() + j * 60000); // 1 minute apart
       const childUpdatedDate = new Date(childCreatedDate.getTime() + Math.random() * 5 * 24 * 60 * 60 * 1000); // Up to 5 days later
+      const childRequestStatus = requestStatuses[Math.floor(Math.random() * requestStatuses.length)];
+      childStatuses.push(childRequestStatus);
       
       children.push({
         id: `CoA-2024-${String(i).padStart(3, '0')}-${j}`,
         initiator_email: `user${i}@entegris.com`,
         recipient_email: "qa@entegris.com",
         document_name: `${docType}-Batch-${batch}.pdf`,
-        request_status: requestStatuses[Math.floor(Math.random() * requestStatuses.length)] as any,
+        request_status: childRequestStatus as any,
         owner: owner,
         owner_status: ownerStatus as any,
-        status: status as any,
+        status: childRequestStatus === "completed" ? "completed" : childRequestStatus === "error" ? "failed" : "in_progress" as any,
         created_at: childCreatedDate.toISOString(),
         updated_at: childUpdatedDate.toISOString(),
         request_status_logs: [],
         parent_id: `REQ-2024-${String(i).padStart(3, '0')}`
       });
+    }
+    
+    // Set overall status based on children
+    if (childStatuses.every(s => s === "completed")) {
+      overallRequestStatus = "completed";
+    } else if (childStatuses.some(s => s === "error" || s === "parsing_failed")) {
+      overallRequestStatus = "failed";
+    } else {
+      overallRequestStatus = "in_progress";
     }
 
     requests.push({
@@ -126,10 +148,10 @@ const generateMockRequests = (): Request[] => {
       initiator_email: `user${i}@entegris.com`,
       recipient_email: "qa@entegris.com",
       document_name: subjects[Math.floor(Math.random() * subjects.length)],
-      request_status: status as any,
+      request_status: overallRequestStatus as any,
       owner: owner,
       owner_status: ownerStatus as any,
-      status: status as any,
+      status: overallRequestStatus as any,
       created_at: createdDate.toISOString(),
       updated_at: updatedDate.toISOString(),
       request_status_logs: [],
@@ -265,37 +287,81 @@ export function Requests() {
               <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <div>
                   <label className="text-sm font-medium block mb-2">Document Status</label>
-                  <div className="space-x-2">
-                    <Button variant="outline" size="sm">All</Button>
-                    <Button variant="outline" size="sm">Parsed</Button>
-                  </div>
-                </div>
-                <div>
-                  <label className="text-sm font-medium block mb-2">Status</label>
-                  <div className="space-x-2">
-                    <Button variant="outline" size="sm">All</Button>
-                    <Button variant="outline" size="sm">Completed</Button>
-                  </div>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background border border-border">
+                      <SelectItem value="all">All</SelectItem>
+                      <SelectItem value="queued">Queued</SelectItem>
+                      <SelectItem value="parsed">Parsed</SelectItem>
+                      <SelectItem value="template_generated">Template Generated</SelectItem>
+                      <SelectItem value="error">Error</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <label className="text-sm font-medium block mb-2">Owner Status</label>
-                  <div className="space-x-2">
-                    <Button variant="outline" size="sm">All</Button>
-                    <Button variant="outline" size="sm">Assigned</Button>
-                  </div>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background border border-border">
+                      <SelectItem value="all">All</SelectItem>
+                      <SelectItem value="unassigned">Unassigned</SelectItem>
+                      <SelectItem value="assigned">Assigned</SelectItem>
+                      <SelectItem value="approved">Approved</SelectItem>
+                      <SelectItem value="rejected">Rejected</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium block mb-2">Request Status</label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background border border-border">
+                      <SelectItem value="all">All</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="in_progress">In Progress</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
+                      <SelectItem value="failed">Error</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <label className="text-sm font-medium block mb-2">Owner</label>
-                  <div className="space-x-2">
-                    <Button variant="outline" size="sm">All</Button>
-                    <Button variant="outline" size="sm">Assigned</Button>
-                  </div>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background border border-border">
+                      <SelectItem value="all">All</SelectItem>
+                      <SelectItem value="jane-smith">Jane Smith</SelectItem>
+                      <SelectItem value="mike-johnson">Mike Johnson</SelectItem>
+                      <SelectItem value="sarah-davis">Sarah Davis</SelectItem>
+                      <SelectItem value="tom-wilson">Tom Wilson</SelectItem>
+                      <SelectItem value="unassigned">Unassigned</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <label className="text-sm font-medium block mb-2">Created At</label>
-                  <div className="space-x-2">
-                    <Button variant="outline" size="sm">Last 7 days</Button>
-                  </div>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All time" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background border border-border">
+                      <SelectItem value="all">All time</SelectItem>
+                      <SelectItem value="last-day">Last day</SelectItem>
+                      <SelectItem value="last-week">Last Week</SelectItem>
+                      <SelectItem value="last-month">Last Month</SelectItem>
+                      <SelectItem value="last-3-months">Last 3 Months</SelectItem>
+                      <SelectItem value="last-6-months">Last 6 Months</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </div>
@@ -352,22 +418,22 @@ export function Requests() {
                           {request.id}
                         </Link>
                       </td>
-                      <td>
-                        <div>
-                          <div className="font-medium">
-                            {request.initiator_email.split('@')[0].replace('.', ' ')}
-                          </div>
-                          <div className="text-sm text-muted-foreground">
-                            {request.initiator_email}
-                          </div>
-                        </div>
-                      </td>
-                      <td>
-                        <div className="font-medium">{request.document_name}</div>
-                      </td>
-                      <td>
-                        <StatusBadge status={(request.request_status as any)?.toUpperCase() || 'UNKNOWN'} />
-                      </td>
+                       <td>
+                         <div>
+                           <div className="font-medium">
+                             {request.initiator_email.split('@')[0].replace('.', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                           </div>
+                           <div className="text-sm text-muted-foreground">
+                             {request.initiator_email}
+                           </div>
+                         </div>
+                       </td>
+                       <td>
+                         <div className="font-medium">{request.document_name}</div>
+                       </td>
+                       <td>
+                         <StatusBadge status={request.status.toUpperCase()} />
+                       </td>
                       <td>
                         <StatusBadge status={request.owner_status.toUpperCase()} type="owner" />
                       </td>
@@ -416,16 +482,9 @@ export function Requests() {
                              {child.id}
                            </Link>
                          </td>
-                         <td>
-                           <div>
-                             <div className="font-medium text-sm">
-                               {child.initiator_email.split('@')[0].replace('.', ' ')}
-                             </div>
-                             <div className="text-xs text-muted-foreground">
-                               {child.initiator_email}
-                             </div>
-                           </div>
-                         </td>
+                          <td>
+                            {/* Child rows show no originator info */}
+                          </td>
                          <td>
                            <div className="font-medium text-sm">{child.document_name}</div>
                          </td>
