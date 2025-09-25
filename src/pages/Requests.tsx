@@ -61,53 +61,84 @@ const mockUsers = {
   }
 };
 
-// Mock data with 7+ parent requests and 1-5 child documents each
-const mockRequests: Request[] = [
-  {
-    id: "REQ-2024-001",
-    initiator_email: "john.doe@entegris.com",
-    recipient_email: "qa@entegris.com", 
-    document_name: "Weekly Chemical Shipment Analysis Request",
-    request_status: "completed" as any,
-    owner: "Jane Smith",
-    owner_status: "approved",
-    status: "completed",
-    created_at: "2024-01-15T10:30:00Z",
-    updated_at: "2024-01-18T16:20:00Z",
-    request_status_logs: [],
-    children: [
-      {
-        id: "CoA-2024-001-1",
-        initiator_email: "john.doe@entegris.com",
+// Generate comprehensive mock data
+const generateMockRequests = (): Request[] => {
+  const requests: Request[] = [];
+  const owners = ["Jane Smith", "Mike Johnson", "Sarah Davis", "Tom Wilson", null];
+  const statuses = ["completed", "in_progress", "pending", "failed"];
+  const ownerStatuses = ["approved", "assigned", "unassigned", "rejected", "retried"];
+  const requestStatuses = ["parsed", "template_generated", "parsing_failed", "queued", "error"];
+  
+  const subjects = [
+    "Weekly Chemical Shipment Analysis Request",
+    "Monthly Quality Control Batch Review",
+    "Quarterly Material Certification Request", 
+    "Emergency Chemical Analysis Protocol",
+    "Annual Compliance Documentation Review",
+    "Bi-Weekly Production Quality Assessment",
+    "Critical Material Safety Evaluation",
+    "Routine Laboratory Testing Protocol",
+    "Special Investigation Analysis Request",
+    "Standard Operating Procedure Review"
+  ];
+
+  const documentTypes = [
+    "IPA-SG-99.9", "ACE-EG-99.5", "MET-AL-98.7", "ETH-GL-97.2", 
+    "HEX-AN-99.8", "TOL-UE-96.5", "XYL-EN-98.1", "BEN-ZE-99.3",
+    "CYC-HX-97.9", "BUT-AN-98.6"
+  ];
+
+  for (let i = 1; i <= 10; i++) {
+    const numChildren = Math.floor(Math.random() * 5) + 1; // 1-5 children
+    const createdDate = new Date(2024, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1);
+    const updatedDate = new Date(createdDate.getTime() + Math.random() * 30 * 24 * 60 * 60 * 1000); // Up to 30 days later
+    
+    const owner = owners[Math.floor(Math.random() * owners.length)];
+    const status = statuses[Math.floor(Math.random() * statuses.length)];
+    const ownerStatus = owner ? ownerStatuses.slice(1)[Math.floor(Math.random() * (ownerStatuses.length - 1))] : "unassigned";
+    
+    const children: Request[] = [];
+    
+    for (let j = 1; j <= numChildren; j++) {
+      const docType = documentTypes[Math.floor(Math.random() * documentTypes.length)];
+      const batch = String.fromCharCode(65 + Math.floor(Math.random() * 26)) + (Math.floor(Math.random() * 999) + 100);
+      const childCreatedDate = new Date(createdDate.getTime() + j * 60000); // 1 minute apart
+      const childUpdatedDate = new Date(childCreatedDate.getTime() + Math.random() * 5 * 24 * 60 * 60 * 1000); // Up to 5 days later
+      
+      children.push({
+        id: `CoA-2024-${String(i).padStart(3, '0')}-${j}`,
+        initiator_email: `user${i}@entegris.com`,
         recipient_email: "qa@entegris.com",
-        document_name: "IPA-SG-99.9-Batch-A123.pdf",
-        request_status: "parsed",
-        owner: "Jane Smith",
-        owner_status: "approved", 
-        status: "completed",
-        created_at: "2024-01-15T10:30:00Z",
-        updated_at: "2024-01-16T14:15:00Z",
+        document_name: `${docType}-Batch-${batch}.pdf`,
+        request_status: requestStatuses[Math.floor(Math.random() * requestStatuses.length)] as any,
+        owner: owner,
+        owner_status: ownerStatus as any,
+        status: status as any,
+        created_at: childCreatedDate.toISOString(),
+        updated_at: childUpdatedDate.toISOString(),
         request_status_logs: [],
-        parent_id: "REQ-2024-001"
-      },
-      {
-        id: "CoA-2024-001-2",
-        initiator_email: "john.doe@entegris.com",
-        recipient_email: "qa@entegris.com",
-        document_name: "ACE-EG-99.5-Batch-B456.pdf",
-        request_status: "parsed",
-        owner: "Jane Smith",
-        owner_status: "approved",
-        status: "completed", 
-        created_at: "2024-01-15T10:32:00Z",
-        updated_at: "2024-01-17T11:20:00Z",
-        request_status_logs: [],
-        parent_id: "REQ-2024-001"
-      }
-    ]
+        parent_id: `REQ-2024-${String(i).padStart(3, '0')}`
+      });
+    }
+
+    requests.push({
+      id: `REQ-2024-${String(i).padStart(3, '0')}`,
+      initiator_email: `user${i}@entegris.com`,
+      recipient_email: "qa@entegris.com",
+      document_name: subjects[Math.floor(Math.random() * subjects.length)],
+      request_status: status as any,
+      owner: owner,
+      owner_status: ownerStatus as any,
+      status: status as any,
+      created_at: createdDate.toISOString(),
+      updated_at: updatedDate.toISOString(),
+      request_status_logs: [],
+      children: children
+    });
   }
-  // ... more mock data would go here
-];
+  
+  return requests;
+};
 
 // Utility function to format relative time
 const formatRelativeTime = (dateString: string) => {
@@ -168,6 +199,7 @@ export function Requests() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [requests, setRequests] = useState<Request[]>(() => generateMockRequests());
   const navigate = useNavigate();
 
   const toggleRowExpansion = (requestId: string) => {
@@ -294,7 +326,7 @@ export function Requests() {
                 </tr>
               </thead>
               <tbody>
-                {mockRequests.map((request) => (
+                {requests.map((request) => (
                   <>
                     <tr key={request.id} className="group">
                       <td>
