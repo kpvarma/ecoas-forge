@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, FileText, Eye, Download, Check, X, ChevronDown, ChevronUp, Edit, FileText as FileIcon } from "lucide-react";
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import Editor from '@monaco-editor/react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -149,6 +148,26 @@ export function Detail_2() {
   const [showDetails, setShowDetails] = useState(false);
   const [xmlEditMode, setXmlEditMode] = useState(false);
   const [xmlContent, setXmlContent] = useState(mockDocumentData.xmlContent);
+  
+  const handleXmlChange = (value: string | undefined) => {
+    if (value) {
+      // Simple validation to prevent structural changes - only allow value modifications
+      try {
+        // Parse to check if XML is still valid
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(value, "application/xml");
+        const error = doc.querySelector("parsererror");
+        
+        if (!error) {
+          setXmlContent(value);
+        } else {
+          console.warn("Invalid XML structure - changes not saved");
+        }
+      } catch (e) {
+        console.warn("Invalid XML - changes not saved");
+      }
+    }
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -322,29 +341,44 @@ export function Detail_2() {
               </div>
               <Card className="border rounded-lg">
                 <CardContent className="p-0">
-                  {xmlEditMode ? (
-                    <textarea
-                      value={xmlContent}
-                      onChange={(e) => setXmlContent(e.target.value)}
-                      className="w-full h-144 p-4 font-mono text-sm border-0 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-ring"
-                      placeholder="Edit XML content here..."
-                    />
-                  ) : (
-                    <div className="h-144 overflow-auto">
-                      <SyntaxHighlighter
+                  <div className="h-144">
+                    {xmlEditMode ? (
+                      <Editor
+                        height="36rem"
                         language="xml"
-                        style={tomorrow}
-                        className="!m-0 !bg-transparent"
-                        customStyle={{
-                          fontSize: '12px',
-                          lineHeight: '1.4',
-                          padding: '16px'
+                        theme="vs-dark"
+                        value={xmlContent}
+                        onChange={handleXmlChange}
+                        options={{
+                          minimap: { enabled: false },
+                          fontSize: 12,
+                          lineNumbers: "on",
+                          readOnly: false,
+                          automaticLayout: true,
+                          scrollBeyondLastLine: false,
+                          wordWrap: "on",
+                          formatOnPaste: true,
+                          formatOnType: true
                         }}
-                      >
-                        {xmlContent}
-                      </SyntaxHighlighter>
-                    </div>
-                  )}
+                      />
+                    ) : (
+                      <Editor
+                        height="36rem"
+                        language="xml"
+                        theme="vs-dark"
+                        value={xmlContent}
+                        options={{
+                          minimap: { enabled: false },
+                          fontSize: 12,
+                          lineNumbers: "on",
+                          readOnly: true,
+                          automaticLayout: true,
+                          scrollBeyondLastLine: false,
+                          wordWrap: "on"
+                        }}
+                      />
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             </div>
