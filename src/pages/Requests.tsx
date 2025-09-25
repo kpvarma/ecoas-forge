@@ -402,7 +402,65 @@ export function Requests() {
                           </Button>
                         </div>
                       </td>
-                    </tr>
+                     </tr>
+                     
+                     {/* Child rows - render when parent is expanded */}
+                     {expandedRows.has(request.id) && request.children?.map((child) => (
+                       <tr key={child.id} className="bg-muted/30">
+                         <td></td>
+                         <td className="pl-8">
+                           <Link 
+                             to={`/requests/${child.id}`}
+                             className="font-medium text-primary hover:underline text-sm"
+                           >
+                             {child.id}
+                           </Link>
+                         </td>
+                         <td>
+                           <div>
+                             <div className="font-medium text-sm">
+                               {child.initiator_email.split('@')[0].replace('.', ' ')}
+                             </div>
+                             <div className="text-xs text-muted-foreground">
+                               {child.initiator_email}
+                             </div>
+                           </div>
+                         </td>
+                         <td>
+                           <div className="font-medium text-sm">{child.document_name}</div>
+                         </td>
+                         <td>
+                           <StatusBadge status={(child.request_status as any)?.toUpperCase() || 'UNKNOWN'} />
+                         </td>
+                         <td>
+                           <StatusBadge status={child.owner_status.toUpperCase()} type="owner" />
+                         </td>
+                         <td>
+                           {child.owner ? (
+                             <UserPopover username={child.owner} />
+                           ) : (
+                             <span className="text-sm text-muted-foreground">Unassigned</span>
+                           )}
+                         </td>
+                         <td className="text-sm text-muted-foreground">
+                           {formatRelativeTime(child.created_at)}
+                         </td>
+                         <td className="text-sm text-muted-foreground">
+                           {formatRelativeTime(child.updated_at)}
+                         </td>
+                         <td>
+                           <div className="flex space-x-1">
+                             <Button
+                               variant="ghost"
+                               size="sm"
+                               onClick={() => handleViewDocument(child.id)}
+                             >
+                               <Eye className="h-4 w-4" />
+                             </Button>
+                           </div>
+                         </td>
+                       </tr>
+                     ))}
                   </>
                 ))}
               </tbody>
