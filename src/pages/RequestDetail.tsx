@@ -183,7 +183,7 @@ export function RequestDetail() {
                 </div>
                 <div className="text-center p-4 rounded-lg bg-muted/30">
                   <div className="text-sm text-muted-foreground mb-2">Overall Status</div>
-                  <StatusBadge status={request.status} type="general" />
+                  <StatusBadge status={request.status} type="request" />
                 </div>
               </div>
             </CardContent>
@@ -334,7 +334,7 @@ export function RequestDetail() {
                       <div key={index} className="flex items-start space-x-3">
                         <div className="flex-shrink-0 w-2 h-2 rounded-full bg-primary mt-2"></div>
                         <div className="flex-1 min-w-0">
-                          <StatusBadge status={log.status} type="general" />
+                          <StatusBadge status={log.status} type="request" />
                           <div className="text-xs text-muted-foreground mt-1">
                             {new Date(log.timestamp).toLocaleString()}
                           </div>

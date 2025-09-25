@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { formatDistanceToNow } from "date-fns";
+import { format } from "date-fns";
 import { 
   Search, 
   Filter, 
@@ -37,6 +37,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Button as PaginationButton } from "@/components/ui/button";
 import { Request, FilterOptions } from "@/types";
 import { StatusBadge } from "@/components/StatusBadge";
 
@@ -162,16 +163,10 @@ const generateMockRequests = (): Request[] => {
   return requests;
 };
 
-// Utility function to format relative time
-const formatRelativeTime = (dateString: string) => {
+// Utility function to format date in long format
+const formatLongDate = (dateString: string) => {
   const date = new Date(dateString);
-  const relative = formatDistanceToNow(date, { addSuffix: true });
-  const formatted = date.toLocaleDateString('en-US', { 
-    month: '2-digit', 
-    day: '2-digit', 
-    year: 'numeric' 
-  });
-  return `${relative} (${formatted})`;
+  return format(date, 'dd MMM yyyy');
 };
 
 // User Popover Component
@@ -222,7 +217,35 @@ export function Requests() {
   const [showFilters, setShowFilters] = useState(false);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [requests, setRequests] = useState<Request[]>(() => generateMockRequests());
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   const navigate = useNavigate();
+
+  // Calculate pagination
+  const totalItems = requests.reduce((acc, request) => {
+    return acc + 1 + (expandedRows.has(request.id) ? (request.children?.length || 0) : 0);
+  }, 0);
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+  // Get paginated requests
+  const getPaginatedData = () => {
+    let flattenedData: Array<{item: Request; isChild: boolean; parent?: Request}> = [];
+    
+    requests.forEach(request => {
+      flattenedData.push({ item: request, isChild: false });
+      if (expandedRows.has(request.id) && request.children) {
+        request.children.forEach(child => {
+          flattenedData.push({ item: child, isChild: true, parent: request });
+        });
+      }
+    });
+
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return flattenedData.slice(startIndex, endIndex);
+  };
+
+  const paginatedData = getPaginatedData();
 
   const toggleRowExpansion = (requestId: string) => {
     const newExpanded = new Set(expandedRows);
@@ -392,139 +415,155 @@ export function Requests() {
                 </tr>
               </thead>
               <tbody>
-                {requests.map((request) => (
-                  <>
-                    <tr key={request.id} className="group">
-                      <td>
-                        {request.children && request.children.length > 0 && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => toggleRowExpansion(request.id)}
-                          >
-                            {expandedRows.has(request.id) ? (
-                              <ChevronDown className="h-4 w-4" />
-                            ) : (
-                              <ChevronRight className="h-4 w-4" />
-                            )}
-                          </Button>
-                        )}
-                      </td>
-                      <td>
-                        <Link 
-                          to={`/requests/${request.id}`}
-                          className="font-medium text-primary hover:underline"
+                {paginatedData.map(({item, isChild, parent}) => (
+                  <tr key={item.id} className={isChild ? "bg-muted/30" : "group"}>
+                    <td>
+                      {!isChild && item.children && item.children.length > 0 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleRowExpansion(item.id)}
                         >
-                          {request.id}
-                        </Link>
-                      </td>
-                       <td>
-                         <div>
-                           <div className="font-medium">
-                             {request.initiator_email.split('@')[0].replace('.', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                           </div>
-                           <div className="text-sm text-muted-foreground">
-                             {request.initiator_email}
-                           </div>
-                         </div>
-                       </td>
-                       <td>
-                         <div className="font-medium">{request.document_name}</div>
-                       </td>
-                       <td>
-                         <StatusBadge status={request.status.toUpperCase()} />
-                       </td>
-                      <td>
-                        <StatusBadge status={request.owner_status.toUpperCase()} type="owner" />
-                      </td>
-                      <td>
-                        {request.owner ? (
-                          <UserPopover username={request.owner} />
+                          {expandedRows.has(item.id) ? (
+                            <ChevronDown className="h-4 w-4" />
+                          ) : (
+                            <ChevronRight className="h-4 w-4" />
+                          )}
+                        </Button>
+                      )}
+                    </td>
+                    <td className={isChild ? "pl-8" : ""}>
+                      <Link 
+                        to={`/requests/${item.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-medium text-primary hover:underline"
+                      >
+                        {item.id}
+                      </Link>
+                    </td>
+                    <td>
+                      {!isChild && (
+                        <div>
+                          <div className="font-medium">
+                            {item.initiator_email.split('@')[0].replace('.', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {item.initiator_email}
+                          </div>
+                        </div>
+                      )}
+                    </td>
+                    <td>
+                      <div className="font-medium">{item.document_name}</div>
+                    </td>
+                    <td>
+                      {isChild ? (
+                        <StatusBadge status={(item.request_status as any)?.toUpperCase() || 'UNKNOWN'} type="document" />
+                      ) : (
+                        <StatusBadge status={item.status.toUpperCase()} type="request" />
+                      )}
+                    </td>
+                    <td>
+                      {isChild && (
+                        <StatusBadge status={item.owner_status.toUpperCase()} type="owner" />
+                      )}
+                    </td>
+                    <td>
+                      {isChild && (
+                        item.owner ? (
+                          <UserPopover username={item.owner} />
                         ) : (
                           <span className="text-sm text-muted-foreground">Unassigned</span>
+                        )
+                      )}
+                    </td>
+                    <td className="text-sm text-muted-foreground">
+                      {formatLongDate(item.created_at)}
+                    </td>
+                    <td className="text-sm text-muted-foreground">
+                      {formatLongDate(item.updated_at)}
+                    </td>
+                    <td>
+                      <div className="flex space-x-1">
+                        {!isChild ? (
+                          <>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleViewRequest(item.id)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleViewDetail2(item.id)}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </>
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleViewDocument(item.id)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
                         )}
-                      </td>
-                      <td className="text-sm text-muted-foreground">
-                        {formatRelativeTime(request.created_at)}
-                      </td>
-                      <td className="text-sm text-muted-foreground">
-                        {formatRelativeTime(request.updated_at)}
-                      </td>
-                      <td>
-                        <div className="flex space-x-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleViewRequest(request.id)}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleViewDetail2(request.id)}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </td>
-                     </tr>
-                     
-                     {/* Child rows - render when parent is expanded */}
-                     {expandedRows.has(request.id) && request.children?.map((child) => (
-                       <tr key={child.id} className="bg-muted/30">
-                         <td></td>
-                         <td className="pl-8">
-                           <Link 
-                             to={`/requests/${child.id}`}
-                             className="font-medium text-primary hover:underline text-sm"
-                           >
-                             {child.id}
-                           </Link>
-                         </td>
-                          <td>
-                            {/* Child rows show no originator info */}
-                          </td>
-                         <td>
-                           <div className="font-medium text-sm">{child.document_name}</div>
-                         </td>
-                         <td>
-                           <StatusBadge status={(child.request_status as any)?.toUpperCase() || 'UNKNOWN'} />
-                         </td>
-                         <td>
-                           <StatusBadge status={child.owner_status.toUpperCase()} type="owner" />
-                         </td>
-                         <td>
-                           {child.owner ? (
-                             <UserPopover username={child.owner} />
-                           ) : (
-                             <span className="text-sm text-muted-foreground">Unassigned</span>
-                           )}
-                         </td>
-                         <td className="text-sm text-muted-foreground">
-                           {formatRelativeTime(child.created_at)}
-                         </td>
-                         <td className="text-sm text-muted-foreground">
-                           {formatRelativeTime(child.updated_at)}
-                         </td>
-                         <td>
-                           <div className="flex space-x-1">
-                             <Button
-                               variant="ghost"
-                               size="sm"
-                               onClick={() => handleViewDocument(child.id)}
-                             >
-                               <Eye className="h-4 w-4" />
-                             </Button>
-                           </div>
-                         </td>
-                       </tr>
-                     ))}
-                  </>
+                      </div>
+                    </td>
+                  </tr>
                 ))}
               </tbody>
             </table>
           </div>
+          
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-6 py-4 border-t">
+              <div className="text-sm text-muted-foreground">
+                Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} entries
+              </div>
+              <div className="flex items-center space-x-2">
+                <PaginationButton
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </PaginationButton>
+                
+                {/* Page numbers */}
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  const pageNum = Math.max(1, Math.min(currentPage - 2 + i, totalPages - 4 + i));
+                  if (pageNum > totalPages) return null;
+                  
+                  return (
+                    <PaginationButton
+                      key={pageNum}
+                      variant={currentPage === pageNum ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setCurrentPage(pageNum)}
+                    >
+                      {pageNum}
+                    </PaginationButton>
+                  );
+                })}
+                
+                <PaginationButton
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </PaginationButton>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
