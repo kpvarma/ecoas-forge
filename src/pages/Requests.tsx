@@ -486,16 +486,26 @@ export function Requests() {
                               <Eye className="h-3 w-3" />
                             </Button>
                           </>
-                        ) : (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 w-6 p-0"
-                            onClick={() => handleViewDocument(item.id)}
-                          >
-                            <Eye className="h-3 w-3" />
-                          </Button>
-                        )}
+                         ) : (
+                           <>
+                             <Button
+                               variant="ghost"
+                               size="sm"
+                               className="h-6 w-6 p-0"
+                               onClick={() => handleViewRequest(item.id)}
+                             >
+                               <Eye className="h-3 w-3" />
+                             </Button>
+                             <Button
+                               variant="ghost"
+                               size="sm"
+                               className="h-6 w-6 p-0"
+                               onClick={() => handleViewDetail2(item.id)}
+                             >
+                               <Eye className="h-3 w-3" />
+                             </Button>
+                           </>
+                         )}
                       </div>
                     </td>
                   </tr>
@@ -522,8 +532,18 @@ export function Requests() {
                 
                 {/* Page numbers */}
                 {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  const pageNum = Math.max(1, Math.min(currentPage - 2 + i, totalPages - 4 + i));
-                  if (pageNum > totalPages) return null;
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+                  
+                  if (pageNum < 1 || pageNum > totalPages) return null;
                   
                   return (
                     <PaginationButton

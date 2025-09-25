@@ -14,7 +14,8 @@ import {
   User,
   X,
   ToggleLeft,
-  ToggleRight
+  ToggleRight,
+  Code
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,6 +38,8 @@ import {
 } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { Template } from "@/types";
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 // Extended Template interface to include new fields
 interface ExtendedTemplate extends Template {
@@ -249,10 +252,12 @@ export function Templates() {
             Manage XML templates for certificate of analysis generation
           </p>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          New Template
-        </Button>
+        <Link to="/templates/new">
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
+            New Template
+          </Button>
+        </Link>
       </div>
 
       {/* Search and Filters */}
@@ -488,29 +493,46 @@ export function Templates() {
 
       {/* XML Viewer Dialog */}
       <Dialog open={xmlDialogOpen} onOpenChange={setXmlDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh]">
+        <DialogContent className="max-w-4xl h-[80vh]">
           <DialogHeader>
-            <DialogTitle>XML Template: {selectedTemplate?.xml_file}</DialogTitle>
+            <DialogTitle className="flex items-center">
+              <Code className="h-5 w-5 mr-2 text-primary" />
+              XML Template: {selectedTemplate?.xml_file}
+            </DialogTitle>
             <DialogDescription>
-              Template for part number: {selectedTemplate?.part_no}
+              Part Number: {selectedTemplate?.part_no}
             </DialogDescription>
           </DialogHeader>
-          <div className="flex-1 overflow-auto">
-            <pre className="bg-muted/50 p-4 rounded-lg text-sm font-mono overflow-x-auto whitespace-pre-wrap">
-              <code>{mockXmlContent}</code>
-            </pre>
-          </div>
-          <DialogFooter className="flex justify-between">
-            <div className="flex space-x-2">
-              <Button 
-                variant="outline"
-                onClick={() => selectedTemplate && handleDownloadXml(selectedTemplate)}
+          
+          <div className="flex-1 overflow-hidden">
+            <div className="h-full overflow-auto">
+              <SyntaxHighlighter
+                language="xml"
+                style={tomorrow}
+                className="!bg-muted/30 !m-0 h-full text-sm rounded-lg"
+                customStyle={{
+                  margin: 0,
+                  padding: '1rem',
+                  background: 'hsl(var(--muted) / 0.3)',
+                  height: '100%',
+                  overflow: 'auto',
+                  borderRadius: '0.5rem'
+                }}
               >
-                <Download className="h-4 w-4 mr-2" />
-                Download
-              </Button>
+                {mockXmlContent}
+              </SyntaxHighlighter>
             </div>
-            <Button variant="outline" onClick={() => setXmlDialogOpen(false)}>
+          </div>
+
+          <DialogFooter className="flex justify-between">
+            <Button 
+              variant="outline"
+              onClick={() => selectedTemplate && handleDownloadXml(selectedTemplate)}
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Download
+            </Button>
+            <Button onClick={() => setXmlDialogOpen(false)}>
               <X className="h-4 w-4 mr-2" />
               Close
             </Button>

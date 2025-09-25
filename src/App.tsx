@@ -10,6 +10,7 @@ import { RequestDetail } from "./pages/RequestDetail";
 import { Detail_2 } from "./pages/Detail_2";
 import { Approval } from "./pages/Approval";
 import { Templates } from "./pages/Templates";
+import { NewTemplate } from "./pages/NewTemplate";
 import { Layout } from "./components/Layout";
 import NotFound from "./pages/NotFound";
 
@@ -39,6 +40,7 @@ const App = () => (
           
           <Route path="/templates" element={<Layout />}>
             <Route index element={<Templates />} />
+            <Route path="new" element={<NewTemplate />} />
           </Route>
           
           {/* Redirect /login to root */}
