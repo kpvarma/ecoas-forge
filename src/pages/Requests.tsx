@@ -72,10 +72,9 @@ const mockUsers = {
 // Generate comprehensive mock data
 const generateMockRequests = (): Request[] => {
   const requests: Request[] = [];
-  const owners = ["Jane Smith", "Mike Johnson", "Sarah Davis", "Tom Wilson", null, null]; // More null values for unassigned
-  const statuses = ["completed", "in_progress", "pending", "failed"];
-  const ownerStatuses = ["approved", "assigned", "unassigned", "rejected", "retried"];
-  const requestStatuses = ["parsed", "template_generated", "parsing_failed", "queued", "error", "completed"];
+  const owners = ["Jane Smith", "Mike Johnson", "Sarah Davis", "Tom Wilson", null, null, null]; // More null values for unassigned
+  const statuses = ["completed", "in_progress", "failed", "queued"];
+  const approvalStatuses = ["pending", "accepted", "rejected"];
   
   const subjects = [
     "Weekly Chemical Shipment Analysis Request",
@@ -87,7 +86,9 @@ const generateMockRequests = (): Request[] => {
     "Critical Material Safety Evaluation",
     "Routine Laboratory Testing Protocol",
     "Special Investigation Analysis Request",
-    "Standard Operating Procedure Review"
+    "Standard Operating Procedure Review",
+    "Additional Quality Review Request",
+    "Extended Material Testing Protocol"
   ];
 
   const documentTypes = [
@@ -96,19 +97,19 @@ const generateMockRequests = (): Request[] => {
     "CYC-HX-97.9", "BUT-AN-98.6"
   ];
 
-  for (let i = 1; i <= 10; i++) {
+  for (let i = 1; i <= 12; i++) {
     const numChildren = Math.floor(Math.random() * 5) + 1; // 1-5 children
     const createdDate = new Date(2024, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1);
     const updatedDate = new Date(createdDate.getTime() + Math.random() * 30 * 24 * 60 * 60 * 1000); // Up to 30 days later
     
     const owner = owners[Math.floor(Math.random() * owners.length)];
     const status = statuses[Math.floor(Math.random() * statuses.length)];
-    const ownerStatus = owner ? ownerStatuses.filter(s => s !== "unassigned")[Math.floor(Math.random() * 4)] : "unassigned";
+    const approvalStatus = owner ? approvalStatuses[Math.floor(Math.random() * 3)] : "pending";
     
     const children: Request[] = [];
     
     // Determine overall request status based on children completion
-    let overallRequestStatus = "pending";
+    let overallRequestStatus = "queued";
     const childStatuses: string[] = [];
     
     for (let j = 1; j <= numChildren; j++) {
@@ -116,18 +117,18 @@ const generateMockRequests = (): Request[] => {
       const batch = String.fromCharCode(65 + Math.floor(Math.random() * 26)) + (Math.floor(Math.random() * 999) + 100);
       const childCreatedDate = new Date(createdDate.getTime() + j * 60000); // 1 minute apart
       const childUpdatedDate = new Date(childCreatedDate.getTime() + Math.random() * 5 * 24 * 60 * 60 * 1000); // Up to 5 days later
-      const childRequestStatus = requestStatuses[Math.floor(Math.random() * requestStatuses.length)];
-      childStatuses.push(childRequestStatus);
+      const childStatus = statuses[Math.floor(Math.random() * statuses.length)];
+      childStatuses.push(childStatus);
       
       children.push({
         id: `CoA-2024-${String(i).padStart(3, '0')}-${j}`,
         initiator_email: `user${i}@entegris.com`,
         recipient_email: "qa@entegris.com",
         document_name: `${docType}-Batch-${batch}.pdf`,
-        request_status: childRequestStatus as any,
+        request_status: childStatus as any,
         owner: owner,
-        owner_status: ownerStatus as any,
-        status: childRequestStatus === "completed" ? "completed" : childRequestStatus === "error" ? "failed" : "in_progress" as any,
+        owner_status: approvalStatus as any,
+        status: childStatus as any,
         created_at: childCreatedDate.toISOString(),
         updated_at: childUpdatedDate.toISOString(),
         request_status_logs: [],
@@ -138,7 +139,7 @@ const generateMockRequests = (): Request[] => {
     // Set overall status based on children
     if (childStatuses.every(s => s === "completed")) {
       overallRequestStatus = "completed";
-    } else if (childStatuses.some(s => s === "error" || s === "parsing_failed")) {
+    } else if (childStatuses.some(s => s === "failed")) {
       overallRequestStatus = "failed";
     } else {
       overallRequestStatus = "in_progress";
@@ -150,8 +151,8 @@ const generateMockRequests = (): Request[] => {
       recipient_email: "qa@entegris.com",
       document_name: subjects[Math.floor(Math.random() * subjects.length)],
       request_status: overallRequestStatus as any,
-      owner: owner,
-      owner_status: ownerStatus as any,
+      owner: null, // Parent rows don't have owners
+      owner_status: "pending" as any, // Default approval status
       status: overallRequestStatus as any,
       created_at: createdDate.toISOString(),
       updated_at: updatedDate.toISOString(),
@@ -221,17 +222,19 @@ export function Requests() {
   const itemsPerPage = 10;
   const navigate = useNavigate();
 
-  // Calculate pagination
-  const totalItems = requests.reduce((acc, request) => {
-    return acc + 1 + (expandedRows.has(request.id) ? (request.children?.length || 0) : 0);
-  }, 0);
+  // Calculate pagination - only count parent rows
+  const totalItems = requests.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-  // Get paginated requests
+  // Get paginated requests - only paginate parent rows
   const getPaginatedData = () => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedRequests = requests.slice(startIndex, endIndex);
+    
     let flattenedData: Array<{item: Request; isChild: boolean; parent?: Request}> = [];
     
-    requests.forEach(request => {
+    paginatedRequests.forEach(request => {
       flattenedData.push({ item: request, isChild: false });
       if (expandedRows.has(request.id) && request.children) {
         request.children.forEach(child => {
@@ -240,9 +243,7 @@ export function Requests() {
       }
     });
 
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    return flattenedData.slice(startIndex, endIndex);
+    return flattenedData;
   };
 
   const paginatedData = getPaginatedData();
@@ -307,9 +308,9 @@ export function Requests() {
           
           {showFilters && (
             <div className="mt-4 p-4 border border-border rounded-lg bg-muted/30">
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
-                  <label className="text-sm font-medium block mb-2">Document Status</label>
+                  <label className="text-sm font-medium block mb-2">Status</label>
                   <Select>
                     <SelectTrigger>
                       <SelectValue placeholder="All" />
@@ -317,30 +318,14 @@ export function Requests() {
                     <SelectContent className="bg-background border border-border">
                       <SelectItem value="all">All</SelectItem>
                       <SelectItem value="queued">Queued</SelectItem>
-                      <SelectItem value="parsed">Parsed</SelectItem>
-                      <SelectItem value="template_generated">Template Generated</SelectItem>
-                      <SelectItem value="error">Error</SelectItem>
+                      <SelectItem value="in_progress">In Progress</SelectItem>
+                      <SelectItem value="failed">Failed</SelectItem>
                       <SelectItem value="completed">Completed</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
-                  <label className="text-sm font-medium block mb-2">Owner Status</label>
-                  <Select>
-                    <SelectTrigger>
-                      <SelectValue placeholder="All" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-background border border-border">
-                      <SelectItem value="all">All</SelectItem>
-                      <SelectItem value="unassigned">Unassigned</SelectItem>
-                      <SelectItem value="assigned">Assigned</SelectItem>
-                      <SelectItem value="approved">Approved</SelectItem>
-                      <SelectItem value="rejected">Rejected</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="text-sm font-medium block mb-2">Request Status</label>
+                  <label className="text-sm font-medium block mb-2">Approval Status</label>
                   <Select>
                     <SelectTrigger>
                       <SelectValue placeholder="All" />
@@ -348,9 +333,8 @@ export function Requests() {
                     <SelectContent className="bg-background border border-border">
                       <SelectItem value="all">All</SelectItem>
                       <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="in_progress">In Progress</SelectItem>
-                      <SelectItem value="completed">Completed</SelectItem>
-                      <SelectItem value="failed">Error</SelectItem>
+                      <SelectItem value="accepted">Accepted</SelectItem>
+                      <SelectItem value="rejected">Rejected</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -407,7 +391,7 @@ export function Requests() {
                   <th>Originator</th>
                   <th>Subject / Document Name</th>
                   <th>Status</th>
-                  <th>Owner Status</th>
+                  <th>Approval Status</th>
                   <th>Owner</th>
                   <th>Created At</th>
                   <th>Updated At</th>
@@ -458,15 +442,11 @@ export function Requests() {
                       <div className="font-medium">{item.document_name}</div>
                     </td>
                     <td>
-                      {isChild ? (
-                        <StatusBadge status={(item.request_status as any)?.toUpperCase() || 'UNKNOWN'} type="document" />
-                      ) : (
-                        <StatusBadge status={item.status.toUpperCase()} type="request" />
-                      )}
+                      <StatusBadge status={item.status.toUpperCase()} type="status" />
                     </td>
                     <td>
                       {isChild && (
-                        <StatusBadge status={item.owner_status.toUpperCase()} type="owner" />
+                        <StatusBadge status={item.owner_status.toUpperCase()} type="approval" />
                       )}
                     </td>
                     <td>
@@ -524,7 +504,7 @@ export function Requests() {
           {totalPages > 1 && (
             <div className="flex items-center justify-between px-6 py-4 border-t">
               <div className="text-sm text-muted-foreground">
-                Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} entries
+                Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} requests
               </div>
               <div className="flex items-center space-x-2">
                 <PaginationButton
