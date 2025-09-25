@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, FileText, Eye, Download } from "lucide-react";
+import { ArrowLeft, FileText, Eye, Download, Check, X, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -143,6 +144,7 @@ const formatDate = (dateString: string) => {
 export function Detail_2() {
   const { id } = useParams();
   const request = mockRequestDetail;
+  const [showDetails, setShowDetails] = useState(false);
 
   return (
     <div className="p-6 space-y-6">
@@ -160,77 +162,139 @@ export function Detail_2() {
         </div>
       </div>
 
-      {/* Request Information - Compact Design */}
+      {/* Combined Request Information and Document Status */}
       <Card className="enterprise-card">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Request Information</CardTitle>
-            <Link to={`/requests/${request.id}/approval`}>
-              <Button>
-                <FileText className="h-4 w-4 mr-2" />
-                View Document
+            <div>
+              <CardTitle>Request Information</CardTitle>
+              <p className="text-lg font-semibold text-muted-foreground mt-2">{request.id}</p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button 
+                className="bg-green-600 hover:bg-green-700 text-white"
+                onClick={() => console.log('Approve clicked')}
+              >
+                <Check className="h-4 w-4 mr-2" />
+                Approve
               </Button>
-            </Link>
+              <Button 
+                className="bg-red-600 hover:bg-red-700 text-white"
+                onClick={() => console.log('Reject clicked')}
+              >
+                <X className="h-4 w-4 mr-2" />
+                Reject
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => setShowDetails(!showDetails)}
+              >
+                {showDetails ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-4 gap-4 text-sm">
-            {/* Row 1: Request / Document ID & Subject */}
-            <div className="col-span-2">
-              <div className="text-muted-foreground mb-1">Request / Document ID</div>
-              <div className="font-medium">{request.id}</div>
-            </div>
-            <div className="col-span-2">
-              <div className="text-muted-foreground mb-1">Subject</div>
-              <div className="font-medium">{request.document_name}</div>
-            </div>
+          {showDetails && (
+            <div className="grid grid-cols-3 gap-4 text-sm">
+              {/* Row 1: Request / Document ID, Subject, Owner */}
+              <div>
+                <div className="text-muted-foreground mb-1">Request / Document ID</div>
+                <div className="font-medium">{request.id}</div>
+              </div>
+              <div>
+                <div className="text-muted-foreground mb-1">Subject</div>
+                <div className="font-medium">{request.document_name}</div>
+              </div>
+              <div>
+                <div className="text-muted-foreground mb-1">Owner</div>
+                <div className="font-medium">{request.owner || "Unassigned"}</div>
+              </div>
 
-            {/* Row 2: Owner - span 2 columns */}
-            <div className="col-span-4">
-              <div className="text-muted-foreground mb-1">Owner</div>
-              <div className="font-medium">{request.owner || "Unassigned"}</div>
-            </div>
+              {/* Row 2: Status, Approval Status, Originator */}
+              <div>
+                <div className="text-muted-foreground mb-1">Status</div>
+                <StatusBadge status={request.status} type="status" />
+              </div>
+              <div>
+                <div className="text-muted-foreground mb-1">Approval Status</div>
+                <StatusBadge status={request.owner_status} type="approval" />
+              </div>
+              <div>
+                <div className="text-muted-foreground mb-1">Originator</div>
+                <div className="font-medium">
+                  <div>John Doe</div>
+                  <div className="text-muted-foreground text-xs">{request.initiator_email}</div>
+                </div>
+              </div>
 
-            {/* Row 3: Status and Approval Status */}
-            <div className="col-span-2">
-              <div className="text-muted-foreground mb-1">Status</div>
-              <StatusBadge status={request.status} type="status" />
-            </div>
-            <div className="col-span-2">
-              <div className="text-muted-foreground mb-1">Approval Status</div>
-              <StatusBadge status={request.owner_status} type="approval" />
-            </div>
-
-            {/* Row 4: Originator, Recipient Email */}
-            <div className="col-span-2">
-              <div className="text-muted-foreground mb-1">Originator</div>
-              <div className="font-medium">
-                <div>John Doe</div>
-                <div className="text-muted-foreground">{request.initiator_email}</div>
+              {/* Row 3: Recipient Email, Created At, Updated At */}
+              <div>
+                <div className="text-muted-foreground mb-1">Recipient Email</div>
+                <div className="font-medium">{request.recipient_email}</div>
+              </div>
+              <div>
+                <div className="text-muted-foreground mb-1">Created At</div>
+                <div className="font-medium">{formatDate(request.created_at)}</div>
+              </div>
+              <div>
+                <div className="text-muted-foreground mb-1">Updated At</div>
+                <div className="font-medium">{formatDate(request.updated_at)}</div>
               </div>
             </div>
-            <div className="col-span-2">
-              <div className="text-muted-foreground mb-1">Recipient Email</div>
-              <div className="font-medium">{request.recipient_email}</div>
+          )}
+          
+          {/* PDF and XML Content Display */}
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* PDF Viewer */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">PDF Document</h3>
+                <div className="flex space-x-2">
+                  <Button variant="outline" size="sm">
+                    <Eye className="h-4 w-4 mr-2" />
+                    View Full
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <Download className="h-4 w-4 mr-2" />
+                    Download
+                  </Button>
+                </div>
+              </div>
+              <div className="border rounded-lg p-4 bg-muted/50">
+                <iframe
+                  src={mockDocumentData.pdfUrl}
+                  className="w-full h-96 rounded border"
+                  title="PDF Document Viewer"
+                />
+              </div>
             </div>
 
-            {/* Row 5: Created at, Updated at */}
-            <div className="col-span-2">
-              <div className="text-muted-foreground mb-1">Created at</div>
-              <div className="font-medium">{formatDate(request.created_at)}</div>
-            </div>
-            <div className="col-span-2">
-              <div className="text-muted-foreground mb-1">Updated at</div>
-              <div className="font-medium">{formatDate(request.updated_at)}</div>
+            {/* XML Content */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold">XML Template</h3>
+                <div className="flex items-center space-x-2">
+                  <StatusBadge status="generated" type="document" />
+                  <Button variant="outline" size="sm">
+                    <Eye className="h-4 w-4 mr-2" />
+                    View Template
+                  </Button>
+                </div>
+              </div>
+              <div className="border rounded-lg">
+                <div className="bg-gray-900 text-gray-100 p-4 rounded-lg text-sm overflow-auto max-h-96">
+                  <pre className="whitespace-pre-wrap">{mockDocumentData.xmlContent}</pre>
+                </div>
+              </div>
             </div>
           </div>
         </CardContent>
       </Card>
-
-      {/* Document Viewer */}
-      <div className="space-y-6">
-        <DocumentViewer documentData={mockDocumentData} showApprovalButtons={false} />
-      </div>
 
       {/* Parent Document Table - Compact */}
       <Card className="enterprise-card">
