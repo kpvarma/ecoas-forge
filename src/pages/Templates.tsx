@@ -1,60 +1,138 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { format } from "date-fns";
 import { 
   Search, 
   Filter, 
   Eye, 
   Plus,
-  Code,
+  Download,
   Archive,
   CheckCircle,
   XCircle,
-  AlertTriangle
+  AlertTriangle,
+  User,
+  X,
+  ToggleLeft,
+  ToggleRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
 import { Template } from "@/types";
 
-// Mock templates data
-const mockTemplates: Template[] = [
+// Extended Template interface to include new fields
+interface ExtendedTemplate extends Template {
+  owner?: string;
+  hintl_enabled: boolean;
+  updated_at: string;
+}
+
+// Mock templates data with extended fields
+const mockTemplates: ExtendedTemplate[] = [
   {
     id: "TMPL-IPA-001",
     part_no: "IPA-SG-99.9",
     xml_file: "isopropanol_semiconductor_grade.xml",
     created_at: "2024-01-10T09:00:00Z",
-    status: "active"
+    updated_at: "2024-01-15T14:30:00Z",
+    status: "active",
+    owner: "Jane Smith",
+    hintl_enabled: true
   },
   {
     id: "TMPL-ACE-001", 
     part_no: "ACE-EG-99.5",
     xml_file: "acetone_electronic_grade.xml",
     created_at: "2024-01-08T14:30:00Z",
-    status: "active"
+    updated_at: "2024-01-12T10:15:00Z",
+    status: "active",
+    owner: "Mike Johnson",
+    hintl_enabled: false
   },
   {
     id: "TMPL-MET-001",
     part_no: "MET-UHP-99.999",
     xml_file: "methanol_ultra_high_purity.xml",
     created_at: "2024-01-05T11:15:00Z",
-    status: "archived"
+    updated_at: "2024-01-20T16:45:00Z",
+    status: "archived",
+    owner: undefined,
+    hintl_enabled: true
   },
   {
     id: "TMPL-ETH-001",
     part_no: "ETH-AN-200P",
     xml_file: "ethanol_anhydrous_200proof.xml", 
     created_at: "2023-12-20T16:45:00Z",
-    status: "inactive"
+    updated_at: "2024-01-05T09:30:00Z",
+    status: "inactive",
+    owner: "Sarah Davis",
+    hintl_enabled: false
   },
   {
     id: "TMPL-WAF-001",
     part_no: "WAF-CZ-300MM",
     xml_file: "silicon_wafer_cz_300mm.xml",
     created_at: "2023-12-15T10:30:00Z",
-    status: "deleted"
+    updated_at: "2023-12-18T13:20:00Z",
+    status: "deleted",
+    owner: undefined,
+    hintl_enabled: true
   }
 ];
+
+// Mock XML content for the dialog
+const mockXmlContent = `<?xml version="1.0" encoding="UTF-8"?>
+<Certificate xmlns="http://www.entegris.com/coa" version="2.0">
+  <Header>
+    <DocumentType>Certificate of Analysis</DocumentType>
+    <DocumentID>{{DOCUMENT_ID}}</DocumentID>
+    <IssueDate>{{ISSUE_DATE}}</IssueDate>
+    <PartNumber>{{PART_NUMBER}}</PartNumber>
+    <BatchNumber>{{BATCH_NUMBER}}</BatchNumber>
+  </Header>
+  <Product>
+    <Name>{{PRODUCT_NAME}}</Name>
+    <Grade>{{GRADE}}</Grade>
+    <Purity>{{PURITY}}</Purity>
+  </Product>
+  <TestResults>
+    <Test name="Purity" method="GC-MS">
+      <Result>{{PURITY_RESULT}}</Result>
+      <Units>%</Units>
+      <Specification>&gt;99.9</Specification>
+    </Test>
+    <Test name="Water Content" method="Karl Fischer">
+      <Result>{{WATER_CONTENT}}</Result>
+      <Units>ppm</Units>
+      <Specification>&lt;50</Specification>
+    </Test>
+  </TestResults>
+</Certificate>`;
+
+// Utility function to format date consistently
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return format(date, 'dd MMM yyyy');
+};
 
 const StatusBadge = ({ status }: { status: string }) => {
   const getVariant = () => {
@@ -90,7 +168,7 @@ const StatusBadge = ({ status }: { status: string }) => {
   return (
     <Badge variant="outline" className={getVariant()}>
       {getIcon()}
-      {status.charAt(0).toUpperCase() + status.slice(1)}
+      {status.toUpperCase()}
     </Badge>
   );
 };
@@ -98,11 +176,68 @@ const StatusBadge = ({ status }: { status: string }) => {
 export function Templates() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilters, setShowFilters] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [dateRangeFilter, setDateRangeFilter] = useState<string>("all");
+  const [xmlDialogOpen, setXmlDialogOpen] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<ExtendedTemplate | null>(null);
+  const [templates, setTemplates] = useState<ExtendedTemplate[]>(mockTemplates);
 
-  const filteredTemplates = mockTemplates.filter(template => 
-    template.part_no.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    template.xml_file.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredTemplates = templates.filter(template => {
+    const matchesSearch = template.part_no.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      template.xml_file.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = statusFilter === "all" || template.status === statusFilter;
+    
+    let matchesDateRange = true;
+    if (dateRangeFilter !== "all") {
+      const templateDate = new Date(template.created_at);
+      const now = new Date();
+      const diffTime = now.getTime() - templateDate.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      switch (dateRangeFilter) {
+        case "last-30":
+          matchesDateRange = diffDays <= 30;
+          break;
+        case "last-90":
+          matchesDateRange = diffDays <= 90;
+          break;
+        case "last-year":
+          matchesDateRange = diffDays <= 365;
+          break;
+      }
+    }
+    
+    return matchesSearch && matchesStatus && matchesDateRange;
+  });
+
+  const handleViewXml = (template: ExtendedTemplate) => {
+    setSelectedTemplate(template);
+    setXmlDialogOpen(true);
+  };
+
+  const handleDownloadXml = (template: ExtendedTemplate) => {
+    // Create a blob with the XML content
+    const blob = new Blob([mockXmlContent], { type: 'application/xml' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = template.xml_file;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const toggleHintl = (templateId: string) => {
+    setTemplates(prev => 
+      prev.map(template => 
+        template.id === templateId 
+          ? { ...template, hintl_enabled: !template.hintl_enabled }
+          : template
+      )
+    );
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -124,7 +259,7 @@ export function Templates() {
       <Card className="enterprise-card">
         <CardContent className="p-4">
           <div className="flex items-center justify-between space-x-4">
-            <div className="flex-1 max-w-md">
+            <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -146,28 +281,35 @@ export function Templates() {
           
           {showFilters && (
             <div className="mt-4 p-4 border border-border rounded-lg bg-muted/30">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium block mb-2">Status</label>
-                  <div className="space-x-2">
-                    <Button variant="outline" size="sm">All</Button>
-                    <Button variant="outline" size="sm">Active</Button>
-                    <Button variant="outline" size="sm">Inactive</Button>
-                  </div>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background border border-border">
+                      <SelectItem value="all">All</SelectItem>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                      <SelectItem value="archived">Archived</SelectItem>
+                      <SelectItem value="deleted">Deleted</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <label className="text-sm font-medium block mb-2">Date Range</label>
-                  <div className="space-x-2">
-                    <Button variant="outline" size="sm">Last 30 days</Button>
-                    <Button variant="outline" size="sm">Last 90 days</Button>
-                  </div>
-                </div>
-                <div>
-                  <label className="text-sm font-medium block mb-2">Part Type</label>
-                  <div className="space-x-2">
-                    <Button variant="outline" size="sm">Chemicals</Button>
-                    <Button variant="outline" size="sm">Wafers</Button>
-                  </div>
+                  <Select value={dateRangeFilter} onValueChange={setDateRangeFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All time" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background border border-border">
+                      <SelectItem value="all">All time</SelectItem>
+                      <SelectItem value="last-30">Last 30 days</SelectItem>
+                      <SelectItem value="last-90">Last 90 days</SelectItem>
+                      <SelectItem value="last-year">Last year</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </div>
@@ -239,56 +381,85 @@ export function Templates() {
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <table className="data-table">
+            <table className="w-full">
               <thead>
-                <tr>
-                  <th>Template ID</th>
-                  <th>Part Number</th>
-                  <th>XML File</th>
-                  <th>Status</th>
-                  <th>Created Date</th>
-                  <th>Actions</th>
+                <tr className="border-b border-border">
+                  <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Template ID</th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Part Number</th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">XML File</th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Owner</th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Hintl</th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Created At</th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Updated At</th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-border">
                 {filteredTemplates.map((template) => (
-                  <tr key={template.id}>
-                    <td>
+                  <tr key={template.id} className="hover:bg-muted/50 transition-colors">
+                    <td className="px-2 py-2">
                       <Link 
                         to={`/templates/${template.id}`}
-                        className="font-medium text-primary hover:underline"
+                        className="text-sm font-medium text-primary hover:underline"
                       >
                         {template.id}
                       </Link>
                     </td>
-                    <td>
-                      <div className="font-medium">{template.part_no}</div>
+                    <td className="px-2 py-2">
+                      <div className="text-sm font-medium">{template.part_no}</div>
                     </td>
-                    <td>
-                      <div className="flex items-center space-x-2">
-                        <Code className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm font-mono">{template.xml_file}</span>
-                      </div>
+                    <td className="px-2 py-2">
+                      <div className="text-sm font-mono text-muted-foreground">{template.xml_file}</div>
                     </td>
-                    <td>
+                    <td className="px-2 py-2">
+                      {template.owner ? (
+                        <div className="flex items-center space-x-2">
+                          <User className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm">{template.owner}</span>
+                        </div>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">Unassigned</span>
+                      )}
+                    </td>
+                    <td className="px-2 py-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-16 p-0"
+                        onClick={() => toggleHintl(template.id)}
+                      >
+                        {template.hintl_enabled ? (
+                          <ToggleRight className="h-5 w-5 text-primary" />
+                        ) : (
+                          <ToggleLeft className="h-5 w-5 text-muted-foreground" />
+                        )}
+                      </Button>
+                    </td>
+                    <td className="px-2 py-2">
                       <StatusBadge status={template.status} />
                     </td>
-                    <td className="text-sm text-muted-foreground">
-                      {new Date(template.created_at).toLocaleDateString()}
+                    <td className="px-2 py-2 text-sm text-muted-foreground">
+                      {formatDate(template.created_at)}
                     </td>
-                    <td>
+                    <td className="px-2 py-2 text-sm text-muted-foreground">
+                      {formatDate(template.updated_at)}
+                    </td>
+                    <td className="px-2 py-2">
                       <div className="flex space-x-1">
-                        <Link to={`/templates/${template.id}`}>
-                          <Button variant="ghost" size="sm">
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </Link>
                         <Button 
                           variant="ghost" 
                           size="sm"
-                          onClick={() => window.open(`/api/templates/${template.id}/xml`, '_blank')}
+                          onClick={() => handleViewXml(template)}
                         >
-                          <Code className="h-4 w-4" />
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleDownloadXml(template)}
+                        >
+                          <Download className="h-4 w-4" />
                         </Button>
                       </div>
                     </td>
@@ -314,6 +485,38 @@ export function Templates() {
           </div>
         </CardContent>
       </Card>
+
+      {/* XML Viewer Dialog */}
+      <Dialog open={xmlDialogOpen} onOpenChange={setXmlDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>XML Template: {selectedTemplate?.xml_file}</DialogTitle>
+            <DialogDescription>
+              Template for part number: {selectedTemplate?.part_no}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 overflow-auto">
+            <pre className="bg-muted/50 p-4 rounded-lg text-sm font-mono overflow-x-auto whitespace-pre-wrap">
+              <code>{mockXmlContent}</code>
+            </pre>
+          </div>
+          <DialogFooter className="flex justify-between">
+            <div className="flex space-x-2">
+              <Button 
+                variant="outline"
+                onClick={() => selectedTemplate && handleDownloadXml(selectedTemplate)}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Download
+              </Button>
+            </div>
+            <Button variant="outline" onClick={() => setXmlDialogOpen(false)}>
+              <X className="h-4 w-4 mr-2" />
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
