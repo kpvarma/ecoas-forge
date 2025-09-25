@@ -383,113 +383,117 @@ export function Requests() {
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <table className="data-table">
+            <table className="w-full">
               <thead>
-                <tr>
-                  <th className="w-12"></th>
-                  <th>Request / Document ID</th>
-                  <th>Originator</th>
-                  <th>Subject / Document Name</th>
-                  <th>Status</th>
-                  <th>Approval Status</th>
-                  <th>Owner</th>
-                  <th>Created At</th>
-                  <th>Updated At</th>
-                  <th>Actions</th>
+                <tr className="border-b border-border">
+                  <th className="w-8 h-8 text-left"></th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Request / Document ID</th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Originator</th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Subject / Document Name</th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Approval Status</th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Owner</th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Created At</th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Updated At</th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-border">
                 {paginatedData.map(({item, isChild, parent}) => (
-                  <tr key={item.id} className={isChild ? "bg-muted/30" : "group"}>
-                    <td>
+                  <tr key={item.id} className={`${isChild ? "bg-muted/30" : "hover:bg-muted/50"} transition-colors`}>
+                    <td className="px-2 py-2">
                       {!isChild && item.children && item.children.length > 0 && (
                         <Button
                           variant="ghost"
                           size="sm"
+                          className="h-6 w-6 p-0"
                           onClick={() => toggleRowExpansion(item.id)}
                         >
                           {expandedRows.has(item.id) ? (
-                            <ChevronDown className="h-4 w-4" />
+                            <ChevronDown className="h-3 w-3" />
                           ) : (
-                            <ChevronRight className="h-4 w-4" />
+                            <ChevronRight className="h-3 w-3" />
                           )}
                         </Button>
                       )}
                     </td>
-                    <td className={isChild ? "pl-8" : ""}>
+                    <td className={`px-2 py-2 ${isChild ? "pl-6" : ""}`}>
                       <Link 
                         to={`/requests/${item.id}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="font-medium text-primary hover:underline"
+                        className="text-sm font-medium text-primary hover:underline"
                       >
                         {item.id}
                       </Link>
                     </td>
-                    <td>
+                    <td className="px-2 py-2">
                       {!isChild && (
                         <div>
-                          <div className="font-medium">
+                          <div className="text-sm font-medium">
                             {item.initiator_email.split('@')[0].replace('.', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                           </div>
-                          <div className="text-sm text-muted-foreground">
+                          <div className="text-xs text-muted-foreground">
                             {item.initiator_email}
                           </div>
                         </div>
                       )}
                     </td>
-                    <td>
-                      <div className="font-medium">{item.document_name}</div>
+                    <td className="px-2 py-2">
+                      <div className="text-sm font-medium">{item.document_name}</div>
                     </td>
-                    <td>
+                    <td className="px-2 py-2">
                       <StatusBadge status={item.status.toUpperCase()} type="status" />
                     </td>
-                    <td>
+                    <td className="px-2 py-2">
                       {isChild && (
                         <StatusBadge status={item.owner_status.toUpperCase()} type="approval" />
                       )}
                     </td>
-                    <td>
+                    <td className="px-2 py-2">
                       {isChild && (
                         item.owner ? (
                           <UserPopover username={item.owner} />
                         ) : (
-                          <span className="text-sm text-muted-foreground">Unassigned</span>
+                          <span className="text-xs text-muted-foreground">Unassigned</span>
                         )
                       )}
                     </td>
-                    <td className="text-sm text-muted-foreground">
+                    <td className="px-2 py-2 text-xs text-muted-foreground">
                       {formatLongDate(item.created_at)}
                     </td>
-                    <td className="text-sm text-muted-foreground">
+                    <td className="px-2 py-2 text-xs text-muted-foreground">
                       {formatLongDate(item.updated_at)}
                     </td>
-                    <td>
+                    <td className="px-2 py-2">
                       <div className="flex space-x-1">
                         {!isChild ? (
                           <>
                             <Button
                               variant="ghost"
                               size="sm"
+                              className="h-6 w-6 p-0"
                               onClick={() => handleViewRequest(item.id)}
                             >
-                              <Eye className="h-4 w-4" />
+                              <Eye className="h-3 w-3" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="sm"
+                              className="h-6 w-6 p-0"
                               onClick={() => handleViewDetail2(item.id)}
                             >
-                              <Eye className="h-4 w-4" />
+                              <Eye className="h-3 w-3" />
                             </Button>
                           </>
                         ) : (
                           <Button
                             variant="ghost"
                             size="sm"
+                            className="h-6 w-6 p-0"
                             onClick={() => handleViewDocument(item.id)}
                           >
-                            <Eye className="h-4 w-4" />
+                            <Eye className="h-3 w-3" />
                           </Button>
                         )}
                       </div>
