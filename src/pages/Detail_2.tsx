@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Request } from "@/types";
 import { StatusBadge } from "@/components/StatusBadge";
+import { DocumentViewer } from "@/components/DocumentViewer";
 
 // Mock data for the specific request
 const mockRequestDetail: Request = {
@@ -99,6 +100,36 @@ const parentDocument = {
   owner: "Jane Smith",
   created_at: "2024-01-15T10:30:00Z",
   updated_at: "2024-01-15T14:20:00Z"
+};
+
+// Mock document data for the viewer
+const mockDocumentData = {
+  requestId: "REQ-2024-001",
+  documentName: "Semiconductor Grade Chemical Analysis",
+  pdfUrl: "https://sample-files.com/downloads/documents/pdf/basic-text.pdf",
+  xmlContent: `<Shipment xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="K S_P05767J.xsd" MaterialDesc="PE PLATE 68X34X0.5 QT4125" PartID="P05767J" Supplier="K S" SupplierPlantCode="120037" CustomerName="Entegris" CustomerPlantId="4165" CompanyGroup="Entegris" PONumber="4501130764-50" ShipmentDate="20-05-2025" ShipQty="9984" SQMSCHEMANAME="K S_P05767J">
+<Lot LotId="250520">
+<SYMBOLICS>
+<Burr VALUE="PASS"/>
+<Stain VALUE="PASS"/>
+<Scratch VALUE="PASS"/>
+<Foreign_Matter_Adhesion VALUE="PASS"/>
+<Packing_Condition VALUE="OK"/>
+</SYMBOLICS>
+<Outside_Diameter>
+<RAW VALUE="68.18"/>
+</Outside_Diameter>
+<Inner_Diameter>
+<RAW VALUE="34.03"/>
+</Inner_Diameter>
+<Plate_Thickness>
+<RAW VALUE="0.48"/>
+</Plate_Thickness>
+</Lot>
+</Shipment>`,
+  templateId: "TMPL-IPA-001",
+  hasXml: true,
+  isGenerated: true
 };
 
 const formatDate = (dateString: string) => {
@@ -196,29 +227,33 @@ export function Detail_2() {
         </CardContent>
       </Card>
 
-      {/* Parent Document Table */}
+      {/* Document Viewer */}
+      <div className="space-y-6">
+        <DocumentViewer documentData={mockDocumentData} showApprovalButtons={false} />
+      </div>
+
+      {/* Parent Document Table - Compact */}
       <Card className="enterprise-card">
-        <CardHeader>
-          <CardTitle>Parent Document</CardTitle>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg">Parent Document</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Request / Document ID</TableHead>
-                  <TableHead>Subject / Document Name</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Approval Status</TableHead>
-                  <TableHead>Owner</TableHead>
-                  <TableHead>Created at</TableHead>
-                  <TableHead>Updated at</TableHead>
-                  <TableHead>Actions</TableHead>
+                <TableRow className="text-xs">
+                  <TableHead className="py-2">ID</TableHead>
+                  <TableHead className="py-2">Document Name</TableHead>
+                  <TableHead className="py-2">Status</TableHead>
+                  <TableHead className="py-2">Approval</TableHead>
+                  <TableHead className="py-2">Owner</TableHead>
+                  <TableHead className="py-2">Created</TableHead>
+                  <TableHead className="py-2">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <TableRow>
-                  <TableCell>
+                <TableRow className="text-sm">
+                  <TableCell className="py-2">
                     <Link 
                       to={`/requests/${parentDocument.id}/detail2`}
                       target="_blank"
@@ -227,25 +262,24 @@ export function Detail_2() {
                       {parentDocument.id}
                     </Link>
                   </TableCell>
-                  <TableCell>{parentDocument.document_name}</TableCell>
-                  <TableCell>
+                  <TableCell className="py-2">{parentDocument.document_name}</TableCell>
+                  <TableCell className="py-2">
                     <StatusBadge status={parentDocument.status} type="status" />
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="py-2">
                     <StatusBadge status={parentDocument.approval_status} type="approval" />
                   </TableCell>
-                  <TableCell>{parentDocument.owner}</TableCell>
-                  <TableCell>{formatDate(parentDocument.created_at)}</TableCell>
-                  <TableCell>{formatDate(parentDocument.updated_at)}</TableCell>
-                  <TableCell>
+                  <TableCell className="py-2">{parentDocument.owner}</TableCell>
+                  <TableCell className="py-2">{formatDate(parentDocument.created_at)}</TableCell>
+                  <TableCell className="py-2">
                     <div className="flex space-x-1">
                       <Link to={`/requests/${parentDocument.id}/detail2`} target="_blank">
-                        <Button variant="ghost" size="sm">
-                          <Eye className="h-4 w-4" />
+                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                          <Eye className="h-3 w-3" />
                         </Button>
                       </Link>
-                      <Button variant="ghost" size="sm">
-                        <Download className="h-4 w-4" />
+                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                        <Download className="h-3 w-3" />
                       </Button>
                     </div>
                   </TableCell>
@@ -256,30 +290,29 @@ export function Detail_2() {
         </CardContent>
       </Card>
 
-      {/* Related Documents Table */}
+      {/* Related Documents Table - Compact */}
       <Card className="enterprise-card">
-        <CardHeader>
-          <CardTitle>Related Documents</CardTitle>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg">Related Documents</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Request / Document ID</TableHead>
-                  <TableHead>Subject / Document Name</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Approval Status</TableHead>
-                  <TableHead>Owner</TableHead>
-                  <TableHead>Created at</TableHead>
-                  <TableHead>Updated at</TableHead>
-                  <TableHead>Actions</TableHead>
+                <TableRow className="text-xs">
+                  <TableHead className="py-2">ID</TableHead>
+                  <TableHead className="py-2">Document Name</TableHead>
+                  <TableHead className="py-2">Status</TableHead>
+                  <TableHead className="py-2">Approval</TableHead>
+                  <TableHead className="py-2">Owner</TableHead>
+                  <TableHead className="py-2">Created</TableHead>
+                  <TableHead className="py-2">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {request.children?.map((child) => (
-                  <TableRow key={child.id}>
-                    <TableCell>
+                  <TableRow key={child.id} className="text-sm">
+                    <TableCell className="py-2">
                       <Link 
                         to={`/requests/${child.id}/detail2`}
                         target="_blank"
@@ -288,25 +321,24 @@ export function Detail_2() {
                         {child.id}
                       </Link>
                     </TableCell>
-                    <TableCell>{child.document_name}</TableCell>
-                    <TableCell>
+                    <TableCell className="py-2">{child.document_name}</TableCell>
+                    <TableCell className="py-2">
                       <StatusBadge status={child.status} type="status" />
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="py-2">
                       <StatusBadge status={child.owner_status} type="approval" />
                     </TableCell>
-                    <TableCell>{child.owner || ""}</TableCell>
-                    <TableCell>{formatDate(child.created_at)}</TableCell>
-                    <TableCell>{formatDate(child.updated_at)}</TableCell>
-                    <TableCell>
+                    <TableCell className="py-2">{child.owner || ""}</TableCell>
+                    <TableCell className="py-2">{formatDate(child.created_at)}</TableCell>
+                    <TableCell className="py-2">
                       <div className="flex space-x-1">
                         <Link to={`/requests/${child.id}/detail2`} target="_blank">
-                          <Button variant="ghost" size="sm">
-                            <Eye className="h-4 w-4" />
+                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                            <Eye className="h-3 w-3" />
                           </Button>
                         </Link>
-                        <Button variant="ghost" size="sm">
-                          <Download className="h-4 w-4" />
+                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                          <Download className="h-3 w-3" />
                         </Button>
                       </div>
                     </TableCell>
