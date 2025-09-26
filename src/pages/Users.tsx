@@ -1,7 +1,15 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -19,7 +27,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Search, User, Mail, Building, Briefcase, Clock } from "lucide-react";
+import { Search, User, Mail, Building, Briefcase, Clock, Settings } from "lucide-react";
 
 // Mock user data - in real app this would come from API
 const mockUsers = [
@@ -28,7 +36,7 @@ const mockUsers = [
     name: "John Smith",
     email: "john.smith@entegris.com", 
     title: "Senior Engineer",
-    role: "Engineer",
+    role: "ADMIN",
     department: "Engineering",
     last_login: "2024-01-15T10:30:00Z",
     status: "active"
@@ -38,7 +46,7 @@ const mockUsers = [
     name: "Sarah Johnson",
     email: "sarah.johnson@entegris.com",
     title: "Product Manager",
-    role: "Manager",
+    role: "USER",
     department: "Product",
     last_login: "2024-01-14T15:45:00Z",
     status: "active"
@@ -48,7 +56,7 @@ const mockUsers = [
     name: "Mike Chen",
     email: "mike.chen@entegris.com", 
     title: "Quality Analyst",
-    role: "Analyst",
+    role: "USER",
     department: "Quality Assurance",
     last_login: "2024-01-13T09:15:00Z",
     status: "active"
@@ -58,7 +66,7 @@ const mockUsers = [
     name: "Emily Davis",
     email: "emily.davis@entegris.com",
     title: "Operations Lead", 
-    role: "Lead",
+    role: "ADMIN",
     department: "Operations",
     last_login: "2024-01-12T14:20:00Z",
     status: "inactive"
@@ -68,7 +76,7 @@ const mockUsers = [
     name: "Robert Wilson",
     email: "robert.wilson@entegris.com",
     title: "Research Scientist",
-    role: "Scientist",
+    role: "USER",
     department: "R&D",
     last_login: "2024-01-11T11:10:00Z", 
     status: "active"
@@ -78,7 +86,7 @@ const mockUsers = [
     name: "Lisa Anderson",
     email: "lisa.anderson@entegris.com",
     title: "Manufacturing Engineer",
-    role: "Engineer",
+    role: "USER",
     department: "Manufacturing",
     last_login: "2024-01-10T16:30:00Z",
     status: "active"
@@ -88,7 +96,7 @@ const mockUsers = [
     name: "David Brown",
     email: "david.brown@entegris.com", 
     title: "Supply Chain Manager",
-    role: "Manager",
+    role: "ADMIN",
     department: "Supply Chain",
     last_login: "2024-01-09T08:45:00Z",
     status: "active"
@@ -98,7 +106,7 @@ const mockUsers = [
     name: "Jennifer Taylor",
     email: "jennifer.taylor@entegris.com",
     title: "Compliance Officer",
-    role: "Officer",
+    role: "USER",
     department: "Compliance", 
     last_login: "2024-01-08T13:25:00Z",
     status: "active"
@@ -108,7 +116,7 @@ const mockUsers = [
     name: "Thomas Martinez",
     email: "thomas.martinez@entegris.com",
     title: "IT Administrator", 
-    role: "Administrator",
+    role: "ADMIN",
     department: "IT",
     last_login: "2024-01-07T12:15:00Z",
     status: "active"
@@ -118,7 +126,7 @@ const mockUsers = [
     name: "Amanda White",
     email: "amanda.white@entegris.com",
     title: "Finance Analyst",
-    role: "Analyst",
+    role: "USER",
     department: "Finance",
     last_login: "2024-01-06T10:50:00Z",
     status: "active"
@@ -128,7 +136,7 @@ const mockUsers = [
     name: "Kevin Garcia",
     email: "kevin.garcia@entegris.com",
     title: "Process Engineer",
-    role: "Engineer",
+    role: "USER",
     department: "Engineering", 
     last_login: "2024-01-05T14:35:00Z",
     status: "active"
@@ -138,7 +146,7 @@ const mockUsers = [
     name: "Rachel Thompson",
     email: "rachel.thompson@entegris.com",
     title: "Project Manager",
-    role: "Manager",
+    role: "ADMIN",
     department: "PMO",
     last_login: "2024-01-04T09:40:00Z",
     status: "inactive"
@@ -147,16 +155,30 @@ const mockUsers = [
 
 export function Users() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [roleFilter, setRoleFilter] = useState("");
+  const [departmentFilter, setDepartmentFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Filter users based on search term
-  const filteredUsers = mockUsers.filter(user =>
-    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Get unique values for filter dropdowns
+  const uniqueRoles = Array.from(new Set(mockUsers.map(user => user.role)));
+  const uniqueDepartments = Array.from(new Set(mockUsers.map(user => user.department)));
+  const uniqueStatuses = Array.from(new Set(mockUsers.map(user => user.status)));
+
+  // Filter users based on search term and filters
+  const filteredUsers = mockUsers.filter(user => {
+    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.department.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.title.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesRole = !roleFilter || user.role === roleFilter;
+    const matchesDepartment = !departmentFilter || user.department === departmentFilter;
+    const matchesStatus = !statusFilter || user.status === statusFilter;
+    
+    return matchesSearch && matchesRole && matchesDepartment && matchesStatus;
+  });
 
   // Calculate pagination
   const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
@@ -165,13 +187,10 @@ export function Users() {
   const currentUsers = filteredUsers.slice(startIndex, endIndex);
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(dateString).toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "short", 
+      year: "numeric"
     });
   };
 
@@ -186,7 +205,7 @@ export function Users() {
         </div>
       </div>
 
-      {/* Search Bar */}
+      {/* Search Bar and Filters */}
       <div className="flex items-center space-x-4">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -200,6 +219,53 @@ export function Users() {
             className="pl-10"
           />
         </div>
+        
+        {/* Role Filter */}
+        <Select value={roleFilter} onValueChange={(value) => {
+          setRoleFilter(value === "all" ? "" : value);
+          setCurrentPage(1);
+        }}>
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Role" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Roles</SelectItem>
+            <SelectItem value="ADMIN">ADMIN</SelectItem>
+            <SelectItem value="USER">USER</SelectItem>
+          </SelectContent>
+        </Select>
+
+        {/* Department Filter */}
+        <Select value={departmentFilter} onValueChange={(value) => {
+          setDepartmentFilter(value === "all" ? "" : value);
+          setCurrentPage(1);
+        }}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Department" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Departments</SelectItem>
+            {uniqueDepartments.map((dept) => (
+              <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Status Filter */}
+        <Select value={statusFilter} onValueChange={(value) => {
+          setStatusFilter(value === "all" ? "" : value);
+          setCurrentPage(1);
+        }}>
+          <SelectTrigger className="w-32">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            {uniqueStatuses.map((status) => (
+              <SelectItem key={status} value={status}>{status.charAt(0).toUpperCase() + status.slice(1)}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Users Table */}
@@ -208,11 +274,11 @@ export function Users() {
             <thead>
               <tr className="border-b border-border">
                 <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">User</th>
-                <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Title</th>
                 <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Role</th>
+                <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Title</th>
                 <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Department</th>
                 <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Last Login</th>
-                <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</th>
+                <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -231,7 +297,12 @@ export function Users() {
                           <User className="h-4 w-4 text-primary" />
                         </div>
                         <div>
-                          <div className="text-sm font-medium">{user.name}</div>
+                          <Link 
+                            to={`/users/${user.id}`}
+                            className="text-sm font-medium text-primary hover:underline"
+                          >
+                            {user.name}
+                          </Link>
                           <div className="text-xs text-muted-foreground flex items-center">
                             <Mail className="h-3 w-3 mr-1" />
                             {user.email}
@@ -240,13 +311,15 @@ export function Users() {
                       </div>
                     </td>
                     <td className="px-2 py-2">
+                      <Badge variant={user.role === 'ADMIN' ? 'default' : 'secondary'} className="text-xs">
+                        {user.role}
+                      </Badge>
+                    </td>
+                    <td className="px-2 py-2">
                       <div className="flex items-center text-sm">
                         <Briefcase className="h-3 w-3 mr-2 text-muted-foreground" />
                         {user.title}
                       </div>
-                    </td>
-                    <td className="px-2 py-2">
-                      <div className="text-sm font-medium">{user.role}</div>
                     </td>
                     <td className="px-2 py-2">
                       <div className="flex items-center text-sm">
@@ -261,9 +334,11 @@ export function Users() {
                       </div>
                     </td>
                     <td className="px-2 py-2">
-                      <Badge variant={user.status === 'active' ? 'default' : 'secondary'} className="text-xs">
-                        {user.status.toUpperCase()}
-                      </Badge>
+                      <Link to={`/users/${user.id}`}>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <Settings className="h-4 w-4" />
+                        </Button>
+                      </Link>
                     </td>
                   </tr>
                 ))
