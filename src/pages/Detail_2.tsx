@@ -180,15 +180,13 @@ export function Detail_2() {
           </Button>
         </Link>
         <div className="flex-1">
-          <h1 className="text-3xl font-bold">{request.id}</h1>
-          <p className="text-muted-foreground mt-1">{request.document_name}</p>
-          <div className="flex items-center gap-4 mt-2">
+          <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Status:</span>
+              <span className="text-sm font-medium text-muted-foreground">STATUS:</span>
               <StatusBadge status={request.status} type="status" />
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Approval:</span>
+              <span className="text-sm font-medium text-muted-foreground">APPROVAL:</span>
               <StatusBadge status={request.owner_status} type="approval" />
             </div>
           </div>
@@ -201,25 +199,10 @@ export function Detail_2() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>Request Information</CardTitle>
-              <p className="text-lg font-semibold text-muted-foreground mt-2">{request.id}</p>
+              <h1 className="text-2xl font-bold mt-2">{request.id}</h1>
+              <p className="text-muted-foreground mt-1">{request.document_name}</p>
             </div>
             <div className="flex items-center space-x-2">
-              <Button 
-                size="sm"
-                className="bg-green-600 hover:bg-green-700 text-white"
-                onClick={() => console.log('Approve clicked')}
-              >
-                <Check className="h-3 w-3 mr-1" />
-                Approve
-              </Button>
-              <Button 
-                size="sm"
-                className="bg-red-600 hover:bg-red-700 text-white"
-                onClick={() => console.log('Reject clicked')}
-              >
-                <X className="h-3 w-3 mr-1" />
-                Reject
-              </Button>
               <Button
                 variant="outline"
                 size="sm"
@@ -251,14 +234,14 @@ export function Detail_2() {
                 <div className="font-medium">{request.owner || "Unassigned"}</div>
               </div>
 
-              {/* Row 2: Status, Approval Status, Originator */}
+              {/* Row 2: Plant ID, Part Number, Originator */}
               <div>
-                <div className="text-muted-foreground mb-1">Status</div>
-                <StatusBadge status={request.status} type="status" />
+                <div className="text-muted-foreground mb-1">Plant ID</div>
+                <div className="font-medium">PLT-001</div>
               </div>
               <div>
-                <div className="text-muted-foreground mb-1">Approval Status</div>
-                <StatusBadge status={request.owner_status} type="approval" />
+                <div className="text-muted-foreground mb-1">Part Number</div>
+                <div className="font-medium">IPA-SG-99.9</div>
               </div>
               <div>
                 <div className="text-muted-foreground mb-1">Originator</div>
@@ -268,11 +251,21 @@ export function Detail_2() {
                 </div>
               </div>
 
-              {/* Row 3: Recipient Email, Created At, Updated At */}
+              {/* Row 3: Status, Approval Status, Recipient Email */}
+              <div>
+                <div className="text-muted-foreground mb-1">Status</div>
+                <StatusBadge status={request.status} type="status" />
+              </div>
+              <div>
+                <div className="text-muted-foreground mb-1">Approval Status</div>
+                <StatusBadge status={request.owner_status} type="approval" />
+              </div>
               <div>
                 <div className="text-muted-foreground mb-1">Recipient Email</div>
                 <div className="font-medium">{request.recipient_email}</div>
               </div>
+
+              {/* Row 4: Created At, Updated At */}
               <div>
                 <div className="text-muted-foreground mb-1">Created At</div>
                 <div className="font-medium">{formatDate(request.created_at)}</div>
@@ -284,8 +277,13 @@ export function Detail_2() {
             </div>
           )}
           
+          {/* Horizontal Separator */}
+          <div className="my-6">
+            <div className="border-t border-border"></div>
+          </div>
+          
           {/* PDF and XML Content Display */}
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* PDF Viewer */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
@@ -317,6 +315,26 @@ export function Detail_2() {
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold">XML Template</h3>
                 <div className="flex items-center space-x-1">
+                  <Button variant="outline" size="sm" className="h-7 px-2">
+                    <Download className="h-3 w-3 mr-1" />
+                    Download
+                  </Button>
+                  <Button 
+                    size="sm"
+                    className="h-7 px-2 bg-green-600 hover:bg-green-700 text-white"
+                    onClick={() => console.log('Approve clicked')}
+                  >
+                    <Check className="h-3 w-3 mr-1" />
+                    Approve
+                  </Button>
+                  <Button 
+                    size="sm"
+                    className="h-7 px-2 bg-red-600 hover:bg-red-700 text-white"
+                    onClick={() => console.log('Reject clicked')}
+                  >
+                    <X className="h-3 w-3 mr-1" />
+                    Reject
+                  </Button>
                   <div className="flex border rounded-md">
                     <Button
                       variant={!xmlEditMode ? "default" : "ghost"}

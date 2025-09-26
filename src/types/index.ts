@@ -18,6 +18,8 @@ export interface Request {
   status_logs?: StatusLog[];
   parent_id?: string;
   children?: Request[];
+  plant_id?: string;
+  part_number?: string;
 }
 
 export interface StatusLog {

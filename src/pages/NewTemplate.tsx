@@ -28,6 +28,7 @@ export function NewTemplate() {
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     partNumber: "",
+    plantId: "",
     owner: "",
     hintl: false,
     description: "",
@@ -57,6 +58,15 @@ export function NewTemplate() {
       toast({
         title: "Validation Error",
         description: "Part Number is required.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!formData.plantId.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Plant ID is required.",
         variant: "destructive",
       });
       return;
@@ -125,6 +135,20 @@ export function NewTemplate() {
                   placeholder="e.g., IPA-SG-99.9"
                   value={formData.partNumber}
                   onChange={(e) => setFormData(prev => ({ ...prev, partNumber: e.target.value }))}
+                  className="w-full"
+                />
+              </div>
+
+              {/* Plant ID */}
+              <div className="space-y-2">
+                <Label htmlFor="plantId" className="text-sm font-medium">
+                  Plant ID <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="plantId"
+                  placeholder="e.g., PLT-001"
+                  value={formData.plantId}
+                  onChange={(e) => setFormData(prev => ({ ...prev, plantId: e.target.value }))}
                   className="w-full"
                 />
               </div>

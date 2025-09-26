@@ -75,6 +75,8 @@ const generateMockRequests = (): Request[] => {
   const owners = ["Jane Smith", "Mike Johnson", "Sarah Davis", "Tom Wilson", null, null, null]; // More null values for unassigned
   const statuses = ["completed", "in_progress", "failed", "queued"];
   const approvalStatuses = ["pending", "accepted", "rejected"];
+  const plantIds = ["PLT-001", "PLT-002", "PLT-003", "PLT-004"];
+  const partNumbers = ["IPA-SG-99.9", "ACE-EG-99.5", "MET-AL-98.7", "ETH-GL-97.2", "HEX-AN-99.8"];
   
   const subjects = [
     "Weekly Chemical Shipment Analysis Request",
@@ -132,7 +134,9 @@ const generateMockRequests = (): Request[] => {
         created_at: childCreatedDate.toISOString(),
         updated_at: childUpdatedDate.toISOString(),
         request_status_logs: [],
-        parent_id: `REQ-2024-${String(i).padStart(3, '0')}`
+        parent_id: `REQ-2024-${String(i).padStart(3, '0')}`,
+        plant_id: plantIds[Math.floor(Math.random() * plantIds.length)],
+        part_number: partNumbers[Math.floor(Math.random() * partNumbers.length)]
       });
     }
     
@@ -219,6 +223,11 @@ export function Requests() {
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [requests, setRequests] = useState<Request[]>(() => generateMockRequests());
   const [currentPage, setCurrentPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [approvalStatusFilter, setApprovalStatusFilter] = useState<string>("all");
+  const [ownerFilter, setOwnerFilter] = useState<string>("all");
+  const [plantIdFilter, setPlantIdFilter] = useState<string>("all");
+  const [partNumberFilter, setPartNumberFilter] = useState<string>("all");
   const itemsPerPage = 10;
   const navigate = useNavigate();
 
@@ -311,7 +320,7 @@ export function Requests() {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div>
                   <label className="text-sm font-medium block mb-2">Status</label>
-                  <Select>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
                     <SelectTrigger>
                       <SelectValue placeholder="All" />
                     </SelectTrigger>
@@ -325,22 +334,39 @@ export function Requests() {
                   </Select>
                 </div>
                 <div>
-                  <label className="text-sm font-medium block mb-2">Approval Status</label>
-                  <Select>
+                  <label className="text-sm font-medium block mb-2">Plant ID</label>
+                  <Select value={plantIdFilter} onValueChange={setPlantIdFilter}>
                     <SelectTrigger>
                       <SelectValue placeholder="All" />
                     </SelectTrigger>
                     <SelectContent className="bg-background border border-border">
                       <SelectItem value="all">All</SelectItem>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="accepted">Accepted</SelectItem>
-                      <SelectItem value="rejected">Rejected</SelectItem>
+                      <SelectItem value="PLT-001">PLT-001</SelectItem>
+                      <SelectItem value="PLT-002">PLT-002</SelectItem>
+                      <SelectItem value="PLT-003">PLT-003</SelectItem>
+                      <SelectItem value="PLT-004">PLT-004</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium block mb-2">Part Number</label>
+                  <Select value={partNumberFilter} onValueChange={setPartNumberFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background border border-border">
+                      <SelectItem value="all">All</SelectItem>
+                      <SelectItem value="IPA-SG-99.9">IPA-SG-99.9</SelectItem>
+                      <SelectItem value="ACE-EG-99.5">ACE-EG-99.5</SelectItem>
+                      <SelectItem value="MET-AL-98.7">MET-AL-98.7</SelectItem>
+                      <SelectItem value="ETH-GL-97.2">ETH-GL-97.2</SelectItem>
+                      <SelectItem value="HEX-AN-99.8">HEX-AN-99.8</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div>
                   <label className="text-sm font-medium block mb-2">Owner</label>
-                  <Select>
+                  <Select value={ownerFilter} onValueChange={setOwnerFilter}>
                     <SelectTrigger>
                       <SelectValue placeholder="All" />
                     </SelectTrigger>
@@ -351,22 +377,6 @@ export function Requests() {
                       <SelectItem value="sarah-davis">Sarah Davis</SelectItem>
                       <SelectItem value="tom-wilson">Tom Wilson</SelectItem>
                       <SelectItem value="unassigned">Unassigned</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="text-sm font-medium block mb-2">Created At</label>
-                  <Select>
-                    <SelectTrigger>
-                      <SelectValue placeholder="All time" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-background border border-border">
-                      <SelectItem value="all">All time</SelectItem>
-                      <SelectItem value="last-day">Last day</SelectItem>
-                      <SelectItem value="last-week">Last Week</SelectItem>
-                      <SelectItem value="last-month">Last Month</SelectItem>
-                      <SelectItem value="last-3-months">Last 3 Months</SelectItem>
-                      <SelectItem value="last-6-months">Last 6 Months</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -388,6 +398,8 @@ export function Requests() {
                 <tr className="border-b border-border">
                   <th className="w-8 h-8 text-left"></th>
                   <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Request / Document ID</th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Plant ID</th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Part Number</th>
                   <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Originator</th>
                   <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Subject / Document Name</th>
                   <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</th>
@@ -426,6 +438,20 @@ export function Requests() {
                       >
                         {item.id}
                       </Link>
+                    </td>
+                    <td className="px-2 py-2">
+                      {isChild ? (
+                        <div className="text-sm font-medium">{item.plant_id}</div>
+                      ) : (
+                        <div className="text-sm text-muted-foreground">-</div>
+                      )}
+                    </td>
+                    <td className="px-2 py-2">
+                      {isChild ? (
+                        <div className="text-sm font-medium">{item.part_number}</div>
+                      ) : (
+                        <div className="text-sm text-muted-foreground">-</div>
+                      )}
                     </td>
                     <td className="px-2 py-2">
                       {!isChild && (

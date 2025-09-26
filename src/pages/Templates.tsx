@@ -46,6 +46,7 @@ interface ExtendedTemplate extends Template {
   owner?: string;
   hintl_enabled: boolean;
   updated_at: string;
+  plant_id: string;
 }
 
 // Mock templates data with extended fields
@@ -58,7 +59,8 @@ const mockTemplates: ExtendedTemplate[] = [
     updated_at: "2024-01-15T14:30:00Z",
     status: "active",
     owner: "Jane Smith",
-    hintl_enabled: true
+    hintl_enabled: true,
+    plant_id: "PLT-001"
   },
   {
     id: "TMPL-ACE-001", 
@@ -68,7 +70,8 @@ const mockTemplates: ExtendedTemplate[] = [
     updated_at: "2024-01-12T10:15:00Z",
     status: "active",
     owner: "Mike Johnson",
-    hintl_enabled: false
+    hintl_enabled: false,
+    plant_id: "PLT-002"
   },
   {
     id: "TMPL-MET-001",
@@ -78,7 +81,8 @@ const mockTemplates: ExtendedTemplate[] = [
     updated_at: "2024-01-20T16:45:00Z",
     status: "archived",
     owner: undefined,
-    hintl_enabled: true
+    hintl_enabled: true,
+    plant_id: "PLT-003"
   },
   {
     id: "TMPL-ETH-001",
@@ -88,7 +92,8 @@ const mockTemplates: ExtendedTemplate[] = [
     updated_at: "2024-01-05T09:30:00Z",
     status: "inactive",
     owner: "Sarah Davis",
-    hintl_enabled: false
+    hintl_enabled: false,
+    plant_id: "PLT-001"
   },
   {
     id: "TMPL-WAF-001",
@@ -98,7 +103,8 @@ const mockTemplates: ExtendedTemplate[] = [
     updated_at: "2023-12-18T13:20:00Z",
     status: "deleted",
     owner: undefined,
-    hintl_enabled: true
+    hintl_enabled: true,
+    plant_id: "PLT-002"
   }
 ];
 
@@ -180,6 +186,7 @@ export function Templates() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [plantIdFilter, setPlantIdFilter] = useState<string>("all");
   const [dateRangeFilter, setDateRangeFilter] = useState<string>("all");
   const [xmlDialogOpen, setXmlDialogOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<ExtendedTemplate | null>(null);
@@ -187,9 +194,11 @@ export function Templates() {
 
   const filteredTemplates = templates.filter(template => {
     const matchesSearch = template.part_no.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      template.xml_file.toLowerCase().includes(searchTerm.toLowerCase());
+      template.xml_file.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      template.plant_id.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === "all" || template.status === statusFilter;
+    const matchesPlantId = plantIdFilter === "all" || template.plant_id === plantIdFilter;
     
     let matchesDateRange = true;
     if (dateRangeFilter !== "all") {
@@ -211,7 +220,7 @@ export function Templates() {
       }
     }
     
-    return matchesSearch && matchesStatus && matchesDateRange;
+    return matchesSearch && matchesStatus && matchesPlantId && matchesDateRange;
   });
 
   const handleViewXml = (template: ExtendedTemplate) => {
@@ -286,7 +295,7 @@ export function Templates() {
           
           {showFilters && (
             <div className="mt-4 p-4 border border-border rounded-lg bg-muted/30">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="text-sm font-medium block mb-2">Status</label>
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -299,6 +308,20 @@ export function Templates() {
                       <SelectItem value="inactive">Inactive</SelectItem>
                       <SelectItem value="archived">Archived</SelectItem>
                       <SelectItem value="deleted">Deleted</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium block mb-2">Plant ID</label>
+                  <Select value={plantIdFilter} onValueChange={setPlantIdFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background border border-border">
+                      <SelectItem value="all">All</SelectItem>
+                      <SelectItem value="PLT-001">PLT-001</SelectItem>
+                      <SelectItem value="PLT-002">PLT-002</SelectItem>
+                      <SelectItem value="PLT-003">PLT-003</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -391,6 +414,7 @@ export function Templates() {
                 <tr className="border-b border-border">
                   <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Template ID</th>
                   <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Part Number</th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Plant ID</th>
                   <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">XML File</th>
                   <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Owner</th>
                   <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Hintl</th>
@@ -413,6 +437,9 @@ export function Templates() {
                     </td>
                     <td className="px-2 py-2">
                       <div className="text-sm font-medium">{template.part_no}</div>
+                    </td>
+                    <td className="px-2 py-2">
+                      <div className="text-sm font-medium">{template.plant_id}</div>
                     </td>
                     <td className="px-2 py-2">
                       <div className="text-sm font-mono text-muted-foreground">{template.xml_file}</div>
