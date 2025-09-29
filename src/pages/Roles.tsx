@@ -34,7 +34,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ConfirmationDialog } from "@/components/ConfirmationDialog";
-import { Search, Filter, Plus, User, Eye, Edit, Trash2, Shield } from "lucide-react";
+import { Search, Filter, Plus, User, ClipboardList, Edit, Trash2, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 // Mock user roles data - in real app this would come from API
@@ -435,7 +435,7 @@ export function Roles() {
                         onClick={() => handleViewRequests(userRole)}
                         className="h-8 w-8 p-0"
                       >
-                        <Eye className="h-4 w-4" />
+                        <ClipboardList className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="ghost"

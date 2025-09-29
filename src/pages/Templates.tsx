@@ -507,12 +507,7 @@ export function Templates() {
                 {filteredTemplates.map((template) => (
                   <tr key={template.id} className="hover:bg-muted/50 transition-colors">
                     <td className="px-2 py-2">
-                      <Link 
-                        to={`/templates/${template.id}`}
-                        className="text-sm font-medium text-primary hover:underline"
-                      >
-                        {template.id}
-                      </Link>
+                      <div className="text-sm font-medium">{template.id}</div>
                     </td>
                     <td className="px-2 py-2">
                       <div className="text-sm font-medium">{template.part_no}</div>
@@ -532,18 +527,10 @@ export function Templates() {
                       <MultipleOwnersDisplay owners={template.owners || []} />
                     </td>
                     <td className="px-2 py-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-16 p-0"
-                        onClick={() => toggleHintl(template.id)}
-                      >
-                        {template.hintl_enabled ? (
-                          <ToggleRight className="h-5 w-5 text-primary" />
-                        ) : (
-                          <ToggleLeft className="h-5 w-5 text-muted-foreground" />
-                        )}
-                      </Button>
+                      <Switch
+                        checked={template.hintl_enabled}
+                        onCheckedChange={() => toggleHintl(template.id)}
+                      />
                     </td>
                     <td className="px-2 py-2">
                       <StatusBadge status={template.status} />
@@ -561,7 +548,7 @@ export function Templates() {
                           size="sm"
                           onClick={() => handleViewXml(template)}
                         >
-                          <Eye className="h-4 w-4" />
+                          <Code className="h-4 w-4" />
                         </Button>
                         <Button 
                           variant="ghost" 

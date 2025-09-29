@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, User, Mail, Building, Briefcase, Clock, Shield, Eye, Edit, Trash2 } from "lucide-react";
+import { ArrowLeft, User, Mail, Building, Briefcase, Clock, Shield, ClipboardList, Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -163,7 +163,6 @@ export function UserDetail() {
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Shield className="h-5 w-5" />
-            <span>User Roles</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -193,7 +192,7 @@ export function UserDetail() {
                         onClick={() => handleViewRequests(role.partNumber, role.plantId, user.id)}
                         title="View requests"
                       >
-                        <Eye className="h-4 w-4" />
+                        <ClipboardList className="h-4 w-4" />
                       </Button>
                       <Link to={`/roles/${role.id}/edit`}>
                         <Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="Edit role">

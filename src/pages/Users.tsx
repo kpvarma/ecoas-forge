@@ -27,7 +27,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Search, User, Mail, Building, Briefcase, Clock, Settings, Shield } from "lucide-react";
+import { Search, User, Mail, Building, Briefcase, Clock, Settings, Shield, Filter, X } from "lucide-react";
 
 // Mock user data - in real app this would come from API
 const mockUsers = [
@@ -155,6 +155,7 @@ const mockUsers = [
 
 export function Users() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
   const [roleFilter, setRoleFilter] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -208,67 +209,104 @@ export function Users() {
         </div>
       </div>
 
-      {/* Search Bar and Filters */}
-      <div className="flex items-center space-x-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search users by name, email, department, or title..."
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setCurrentPage(1); // Reset to first page when searching
-            }}
-            className="pl-10"
-          />
+      {/* Search and Filters */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between space-x-4">
+          <div className="flex-1">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search users by name, email, department, or title..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="pl-10"
+              />
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            <Filter className="h-4 w-4 mr-2" />
+            Filters
+          </Button>
         </div>
         
-        {/* Role Filter */}
-        <Select value={roleFilter} onValueChange={(value) => {
-          setRoleFilter(value === "all" ? "" : value);
-          setCurrentPage(1);
-        }}>
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder="Role" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Roles</SelectItem>
-            <SelectItem value="ADMIN">ADMIN</SelectItem>
-            <SelectItem value="USER">USER</SelectItem>
-          </SelectContent>
-        </Select>
+        {showFilters && (
+          <div className="p-4 border border-border rounded-lg bg-muted/30">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="text-sm font-medium block mb-2">Role</label>
+                <Select value={roleFilter} onValueChange={(value) => {
+                  setRoleFilter(value === "all" ? "" : value);
+                  setCurrentPage(1);
+                }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Roles" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Roles</SelectItem>
+                    <SelectItem value="ADMIN">ADMIN</SelectItem>
+                    <SelectItem value="USER">USER</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-        {/* Department Filter */}
-        <Select value={departmentFilter} onValueChange={(value) => {
-          setDepartmentFilter(value === "all" ? "" : value);
-          setCurrentPage(1);
-        }}>
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Department" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Departments</SelectItem>
-            {uniqueDepartments.map((dept) => (
-              <SelectItem key={dept} value={dept}>{dept}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+              <div>
+                <label className="text-sm font-medium block mb-2">Department</label>
+                <Select value={departmentFilter} onValueChange={(value) => {
+                  setDepartmentFilter(value === "all" ? "" : value);
+                  setCurrentPage(1);
+                }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Departments" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Departments</SelectItem>
+                    {uniqueDepartments.map((dept) => (
+                      <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-        {/* Status Filter */}
-        <Select value={statusFilter} onValueChange={(value) => {
-          setStatusFilter(value === "all" ? "" : value);
-          setCurrentPage(1);
-        }}>
-          <SelectTrigger className="w-32">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            {uniqueStatuses.map((status) => (
-              <SelectItem key={status} value={status}>{status.charAt(0).toUpperCase() + status.slice(1)}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+              <div>
+                <label className="text-sm font-medium block mb-2">Status</label>
+                <Select value={statusFilter} onValueChange={(value) => {
+                  setStatusFilter(value === "all" ? "" : value);
+                  setCurrentPage(1);
+                }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    {uniqueStatuses.map((status) => (
+                      <SelectItem key={status} value={status}>{status.charAt(0).toUpperCase() + status.slice(1)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex justify-end mt-4">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setRoleFilter("");
+                  setDepartmentFilter("");
+                  setStatusFilter("");
+                  setCurrentPage(1);
+                }}
+              >
+                Clear Filters
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Users Table */}
