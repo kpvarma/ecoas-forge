@@ -124,6 +124,7 @@ const generateMockRequests = (): Request[] => {
       
       children.push({
         id: `CoA-2024-${String(i).padStart(3, '0')}-${j}`,
+        created_date:childCreatedDate.toISOString(),
         initiator_email: `user${i}@entegris.com`,
         recipient_email: "qa@entegris.com",
         document_name: `${docType}-Batch-${batch}.pdf`,
@@ -151,6 +152,7 @@ const generateMockRequests = (): Request[] => {
 
     requests.push({
       id: `REQ-2024-${String(i).padStart(3, '0')}`,
+      created_date:createdDate.toISOString(),
       initiator_email: `user${i}@entegris.com`,
       recipient_email: "qa@entegris.com",
       document_name: subjects[Math.floor(Math.random() * subjects.length)],
@@ -398,6 +400,7 @@ export function Requests() {
                 <tr className="border-b border-border">
                   <th className="w-8 h-8 text-left"></th>
                   <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Request / Document ID</th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Created Date</th>
                   <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Plant ID</th>
                   <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Part Number</th>
                   <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Originator</th>
@@ -438,6 +441,10 @@ export function Requests() {
                       >
                         {item.id}
                       </Link>
+                    </td>
+                     <td className={`px-2 py-2 ${isChild ? "pl-6" : ""}`}>
+                      {formatLongDate(item.created_date)}
+                       
                     </td>
                     <td className="px-2 py-2">
                       {isChild ? (
