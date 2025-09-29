@@ -19,6 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -72,7 +73,15 @@ const mockUsers = {
 // Generate comprehensive mock data
 const generateMockRequests = (): Request[] => {
   const requests: Request[] = [];
-  const owners = ["Jane Smith", "Mike Johnson", "Sarah Davis", "Tom Wilson", null, null, null]; // More null values for unassigned
+  const owners = [
+    ["Jane Smith"], 
+    ["Mike Johnson"], 
+    ["Sarah Davis", "Tom Wilson"], 
+    ["Jane Smith", "Mike Johnson"], 
+    [], 
+    [], 
+    ["Tom Wilson"]
+  ]; // Array of arrays for multiple owners
   const statuses = ["completed", "in_progress", "failed", "queued"];
   const approvalStatuses = ["pending", "accepted", "rejected"];
   const plantIds = ["PLT-001", "PLT-002", "PLT-003", "PLT-004"];
@@ -106,7 +115,7 @@ const generateMockRequests = (): Request[] => {
     
     const owner = owners[Math.floor(Math.random() * owners.length)];
     const status = statuses[Math.floor(Math.random() * statuses.length)];
-    const approvalStatus = owner ? approvalStatuses[Math.floor(Math.random() * 3)] : "pending";
+    const approvalStatus = owner.length > 0 ? approvalStatuses[Math.floor(Math.random() * 3)] : "pending";
     
     const children: Request[] = [];
     
@@ -128,7 +137,7 @@ const generateMockRequests = (): Request[] => {
         recipient_email: "qa@entegris.com",
         document_name: `${docType}-Batch-${batch}.pdf`,
         request_status: childStatus as any,
-        owner: owner,
+        owner: owner.length > 0 ? owner[0] : null, // Use first owner for child items
         owner_status: approvalStatus as any,
         status: childStatus as any,
         created_at: childCreatedDate.toISOString(),
@@ -174,21 +183,26 @@ const formatLongDate = (dateString: string) => {
   return format(date, 'dd MMM yyyy');
 };
 
-// User Popover Component
-const UserPopover = ({ username }: { username: string }) => {
+// User Badge with Popover Component
+const UserBadge = ({ username }: { username: string }) => {
   const user = mockUsers[username as keyof typeof mockUsers];
   
   if (!user) {
-    return <span className="text-sm">{username}</span>;
+    return (
+      <Badge variant="secondary" className="text-xs">
+        <User className="h-3 w-3 mr-1" />
+        {username}
+      </Badge>
+    );
   }
 
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button className="flex items-center space-x-2 text-sm hover:text-primary transition-colors">
-          <User className="h-4 w-4" />
-          <span>{username}</span>
-        </button>
+        <Badge variant="secondary" className="text-xs cursor-pointer hover:bg-secondary/80 transition-colors">
+          <User className="h-3 w-3 mr-1" />
+          {username}
+        </Badge>
       </PopoverTrigger>
       <PopoverContent className="w-80 p-4">
         <div className="space-y-3">
@@ -214,6 +228,21 @@ const UserPopover = ({ username }: { username: string }) => {
         </div>
       </PopoverContent>
     </Popover>
+  );
+};
+
+// Multiple Users Display Component
+const MultipleUsersDisplay = ({ owners }: { owners: string[] }) => {
+  if (!owners || owners.length === 0) {
+    return <span className="text-xs text-muted-foreground">Unassigned</span>;
+  }
+
+  return (
+    <div className="flex flex-wrap gap-1">
+      {owners.map((owner, index) => (
+        <UserBadge key={index} username={owner} />
+      ))}
+    </div>
   );
 };
 
@@ -478,11 +507,7 @@ export function Requests() {
                     </td>
                     <td className="px-2 py-2">
                       {isChild && (
-                        item.owner ? (
-                          <UserPopover username={item.owner} />
-                        ) : (
-                          <span className="text-xs text-muted-foreground">Unassigned</span>
-                        )
+                        <MultipleUsersDisplay owners={item.owner ? [item.owner] : []} />
                       )}
                     </td>
                     <td className="px-2 py-2 text-xs text-muted-foreground">
