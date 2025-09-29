@@ -4,6 +4,7 @@ import {
   FileText, 
   FolderOpen, 
   User,
+  Shield,
   LogOut,
   Bell,
   Settings
@@ -16,6 +17,7 @@ const navigation = [
   { name: "Requests", href: "/requests", icon: FileText },
   { name: "Templates", href: "/templates", icon: FolderOpen },
   { name: "Users", href: "/users", icon: User },
+  { name: "Roles", href: "/roles", icon: Shield },
 ];
 
 export function Layout() {

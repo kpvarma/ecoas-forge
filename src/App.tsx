@@ -12,6 +12,8 @@ import { Approval } from "./pages/Approval";
 import { Templates } from "./pages/Templates";
 import { NewTemplate } from "./pages/NewTemplate";
 import { Users } from "./pages/Users";
+import { UserDetail } from "./pages/UserDetail";
+import { Roles } from "./pages/Roles";
 import { Profile } from "./pages/Profile";
 import { Layout } from "./components/Layout";
 import NotFound from "./pages/NotFound";
@@ -47,6 +49,11 @@ const App = () => (
 
           <Route path="/users" element={<Layout />}>
             <Route index element={<Users />} />
+            <Route path=":id" element={<UserDetail />} />
+          </Route>
+
+          <Route path="/roles" element={<Layout />}>
+            <Route index element={<Roles />} />
           </Route>
 
           <Route path="/profile" element={<Layout />}>

@@ -15,7 +15,10 @@ import {
   X,
   ToggleLeft,
   ToggleRight,
-  Code
+  Code,
+  Building,
+  Mail,
+  FolderOpen
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,18 +39,52 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
+import { MultipleOwnersDisplay } from "@/components/OwnerBadge";
 import { Template } from "@/types";
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 // Extended Template interface to include new fields
 interface ExtendedTemplate extends Template {
-  owner?: string;
+  owners?: string[];
   hintl_enabled: boolean;
   updated_at: string;
   plant_id: string;
 }
+
+// Mock users data for popover
+const mockUsers = {
+  "Jane Smith": {
+    name: "Jane Smith",
+    title: "Senior Quality Analyst",
+    department: "Quality Assurance",
+    email: "jane.smith@entegris.com"
+  },
+  "Mike Johnson": {
+    name: "Mike Johnson", 
+    title: "QC Supervisor",
+    department: "Quality Control",
+    email: "mike.johnson@entegris.com"
+  },
+  "Sarah Davis": {
+    name: "Sarah Davis",
+    title: "Lab Manager",
+    department: "Laboratory Services", 
+    email: "sarah.davis@entegris.com"
+  },
+  "Tom Wilson": {
+    name: "Tom Wilson",
+    title: "Quality Engineer",
+    department: "Quality Engineering",
+    email: "tom.wilson@entegris.com"
+  }
+};
 
 // Mock templates data with extended fields
 const mockTemplates: ExtendedTemplate[] = [
@@ -58,7 +95,7 @@ const mockTemplates: ExtendedTemplate[] = [
     created_at: "2024-01-10T09:00:00Z",
     updated_at: "2024-01-15T14:30:00Z",
     status: "active",
-    owner: "Jane Smith",
+    owners: ["Jane Smith", "Mike Johnson"],
     hintl_enabled: true,
     plant_id: "PLT-001"
   },
@@ -69,7 +106,7 @@ const mockTemplates: ExtendedTemplate[] = [
     created_at: "2024-01-08T14:30:00Z",
     updated_at: "2024-01-12T10:15:00Z",
     status: "active",
-    owner: "Mike Johnson",
+    owners: ["Mike Johnson"],
     hintl_enabled: false,
     plant_id: "PLT-002"
   },
@@ -80,7 +117,7 @@ const mockTemplates: ExtendedTemplate[] = [
     created_at: "2024-01-05T11:15:00Z",
     updated_at: "2024-01-20T16:45:00Z",
     status: "archived",
-    owner: undefined,
+    owners: [],
     hintl_enabled: true,
     plant_id: "PLT-003"
   },
@@ -91,7 +128,7 @@ const mockTemplates: ExtendedTemplate[] = [
     created_at: "2023-12-20T16:45:00Z",
     updated_at: "2024-01-05T09:30:00Z",
     status: "inactive",
-    owner: "Sarah Davis",
+    owners: ["Sarah Davis", "Tom Wilson"],
     hintl_enabled: false,
     plant_id: "PLT-001"
   },
@@ -102,7 +139,7 @@ const mockTemplates: ExtendedTemplate[] = [
     created_at: "2023-12-15T10:30:00Z",
     updated_at: "2023-12-18T13:20:00Z",
     status: "deleted",
-    owner: undefined,
+    owners: [],
     hintl_enabled: true,
     plant_id: "PLT-002"
   }
@@ -182,11 +219,14 @@ const StatusBadge = ({ status }: { status: string }) => {
   );
 };
 
+
 export function Templates() {
   const [searchTerm, setSearchTerm] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [plantIdFilter, setPlantIdFilter] = useState<string>("all");
+  const [partNumberFilter, setPartNumberFilter] = useState<string>("all");
+  const [ownerFilter, setOwnerFilter] = useState<string>("all");
   const [dateRangeFilter, setDateRangeFilter] = useState<string>("all");
   const [xmlDialogOpen, setXmlDialogOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<ExtendedTemplate | null>(null);
@@ -199,6 +239,10 @@ export function Templates() {
     
     const matchesStatus = statusFilter === "all" || template.status === statusFilter;
     const matchesPlantId = plantIdFilter === "all" || template.plant_id === plantIdFilter;
+    const matchesPartNumber = partNumberFilter === "all" || template.part_no === partNumberFilter;
+    const matchesOwner = ownerFilter === "all" || 
+      (ownerFilter === "unassigned" && (!template.owners || template.owners.length === 0)) ||
+      (template.owners && template.owners.some(owner => owner.toLowerCase().replace(' ', '-') === ownerFilter));
     
     let matchesDateRange = true;
     if (dateRangeFilter !== "all") {
@@ -220,7 +264,7 @@ export function Templates() {
       }
     }
     
-    return matchesSearch && matchesStatus && matchesPlantId && matchesDateRange;
+    return matchesSearch && matchesStatus && matchesPlantId && matchesPartNumber && matchesOwner && matchesDateRange;
   });
 
   const handleViewXml = (template: ExtendedTemplate) => {
@@ -256,7 +300,10 @@ export function Templates() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Templates</h1>
+          <div className="flex items-center space-x-3">
+            <FolderOpen className="h-8 w-8 text-primary" />
+            <h1 className="text-3xl font-bold">Templates</h1>
+          </div>
           <p className="text-muted-foreground mt-1">
             Manage XML templates for certificate of analysis generation
           </p>
@@ -295,7 +342,7 @@ export function Templates() {
           
           {showFilters && (
             <div className="mt-4 p-4 border border-border rounded-lg bg-muted/30">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <div>
                   <label className="text-sm font-medium block mb-2">Status</label>
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -308,6 +355,38 @@ export function Templates() {
                       <SelectItem value="inactive">Inactive</SelectItem>
                       <SelectItem value="archived">Archived</SelectItem>
                       <SelectItem value="deleted">Deleted</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium block mb-2">Part Number</label>
+                  <Select value={partNumberFilter} onValueChange={setPartNumberFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background border border-border">
+                      <SelectItem value="all">All</SelectItem>
+                      <SelectItem value="IPA-SG-99.9">IPA-SG-99.9</SelectItem>
+                      <SelectItem value="ACE-EG-99.5">ACE-EG-99.5</SelectItem>
+                      <SelectItem value="MET-UHP-99.999">MET-UHP-99.999</SelectItem>
+                      <SelectItem value="ETH-AN-200P">ETH-AN-200P</SelectItem>
+                      <SelectItem value="WAF-CZ-300MM">WAF-CZ-300MM</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium block mb-2">Owner</label>
+                  <Select value={ownerFilter} onValueChange={setOwnerFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background border border-border">
+                      <SelectItem value="all">All</SelectItem>
+                      <SelectItem value="jane-smith">Jane Smith</SelectItem>
+                      <SelectItem value="mike-johnson">Mike Johnson</SelectItem>
+                      <SelectItem value="sarah-davis">Sarah Davis</SelectItem>
+                      <SelectItem value="tom-wilson">Tom Wilson</SelectItem>
+                      <SelectItem value="unassigned">Unassigned</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -442,17 +521,15 @@ export function Templates() {
                       <div className="text-sm font-medium">{template.plant_id}</div>
                     </td>
                     <td className="px-2 py-2">
-                      <div className="text-sm font-mono text-muted-foreground">{template.xml_file}</div>
+                      <button 
+                        onClick={() => handleViewXml(template)}
+                        className="text-sm font-mono text-primary hover:underline transition-colors"
+                      >
+                        {template.xml_file}
+                      </button>
                     </td>
                     <td className="px-2 py-2">
-                      {template.owner ? (
-                        <div className="flex items-center space-x-2">
-                          <User className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm">{template.owner}</span>
-                        </div>
-                      ) : (
-                        <span className="text-sm text-muted-foreground">Unassigned</span>
-                      )}
+                      <MultipleOwnersDisplay owners={template.owners || []} />
                     </td>
                     <td className="px-2 py-2">
                       <Button

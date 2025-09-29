@@ -172,24 +172,15 @@ export function Detail_2() {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center justify-between">
         <Link to="/requests">
           <Button variant="ghost" size="sm">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Requests
           </Button>
         </Link>
-        <div className="flex-1">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-muted-foreground">STATUS:</span>
-              <StatusBadge status={request.status} type="status" />
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-muted-foreground">APPROVAL:</span>
-              <StatusBadge status={request.owner_status} type="approval" />
-            </div>
-          </div>
+        <div className="text-right">
+          <h1 className="text-lg font-bold">{request.id}</h1>
         </div>
       </div>
 
@@ -197,10 +188,19 @@ export function Detail_2() {
       <Card className="enterprise-card">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Request Information</CardTitle>
-              <h1 className="text-2xl font-bold mt-2">{request.id}</h1>
-              <p className="text-muted-foreground mt-1">{request.document_name}</p>
+            <div className="space-y-2">
+              <h1 className="text-2xl font-bold">{request.id}</h1>
+              <p className="text-muted-foreground">{request.document_name}</p>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-muted-foreground">STATUS:</span>
+                  <StatusBadge status={request.status} type="status" />
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-muted-foreground">APPROVAL STATUS:</span>
+                  <StatusBadge status={request.owner_status} type="approval" />
+                </div>
+              </div>
             </div>
             <div className="flex items-center space-x-2">
               <Button
@@ -320,16 +320,18 @@ export function Detail_2() {
                     Download
                   </Button>
                   <Button 
+                    variant="outline"
                     size="sm"
-                    className="h-7 px-2 bg-green-600 hover:bg-green-700 text-white"
+                    className="h-7 px-2 border-green-600 text-green-600 hover:bg-green-600 hover:text-white"
                     onClick={() => console.log('Approve clicked')}
                   >
                     <Check className="h-3 w-3 mr-1" />
                     Approve
                   </Button>
                   <Button 
+                    variant="outline"
                     size="sm"
-                    className="h-7 px-2 bg-red-600 hover:bg-red-700 text-white"
+                    className="h-7 px-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white"
                     onClick={() => console.log('Reject clicked')}
                   >
                     <X className="h-3 w-3 mr-1" />
@@ -407,7 +409,7 @@ export function Detail_2() {
       {/* Parent Document Table - Compact */}
       <Card className="enterprise-card">
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Parent Document</CardTitle>
+          <CardTitle className="text-lg">Request Details</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">

@@ -19,6 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -40,39 +41,21 @@ import {
 import { Button as PaginationButton } from "@/components/ui/button";
 import { Request, FilterOptions } from "@/types";
 import { StatusBadge } from "@/components/StatusBadge";
+import { MultipleOwnersDisplay } from "@/components/OwnerBadge";
 
-// Mock users data for popover
-const mockUsers = {
-  "Jane Smith": {
-    name: "Jane Smith",
-    title: "Senior Quality Analyst",
-    department: "Quality Assurance",
-    email: "jane.smith@entegris.com"
-  },
-  "Mike Johnson": {
-    name: "Mike Johnson", 
-    title: "QC Supervisor",
-    department: "Quality Control",
-    email: "mike.johnson@entegris.com"
-  },
-  "Sarah Davis": {
-    name: "Sarah Davis",
-    title: "Lab Manager",
-    department: "Laboratory Services", 
-    email: "sarah.davis@entegris.com"
-  },
-  "Tom Wilson": {
-    name: "Tom Wilson",
-    title: "Quality Engineer",
-    department: "Quality Engineering",
-    email: "tom.wilson@entegris.com"
-  }
-};
 
 // Generate comprehensive mock data
 const generateMockRequests = (): Request[] => {
   const requests: Request[] = [];
-  const owners = ["Jane Smith", "Mike Johnson", "Sarah Davis", "Tom Wilson", null, null, null]; // More null values for unassigned
+  const owners = [
+    ["Jane Smith"], 
+    ["Mike Johnson"], 
+    ["Sarah Davis", "Tom Wilson"], 
+    ["Jane Smith", "Mike Johnson"], 
+    [], 
+    [], 
+    ["Tom Wilson"]
+  ]; // Array of arrays for multiple owners
   const statuses = ["completed", "in_progress", "failed", "queued"];
   const approvalStatuses = ["pending", "accepted", "rejected"];
   const plantIds = ["PLT-001", "PLT-002", "PLT-003", "PLT-004"];
@@ -106,7 +89,7 @@ const generateMockRequests = (): Request[] => {
     
     const owner = owners[Math.floor(Math.random() * owners.length)];
     const status = statuses[Math.floor(Math.random() * statuses.length)];
-    const approvalStatus = owner ? approvalStatuses[Math.floor(Math.random() * 3)] : "pending";
+    const approvalStatus = owner.length > 0 ? approvalStatuses[Math.floor(Math.random() * 3)] : "pending";
     
     const children: Request[] = [];
     
@@ -129,7 +112,7 @@ const generateMockRequests = (): Request[] => {
         recipient_email: "qa@entegris.com",
         document_name: `${docType}-Batch-${batch}.pdf`,
         request_status: childStatus as any,
-        owner: owner,
+        owner: owner.length > 0 ? owner[0] : null, // Use first owner for child items
         owner_status: approvalStatus as any,
         status: childStatus as any,
         created_at: childCreatedDate.toISOString(),
@@ -176,48 +159,6 @@ const formatLongDate = (dateString: string) => {
   return format(date, 'dd MMM yyyy');
 };
 
-// User Popover Component
-const UserPopover = ({ username }: { username: string }) => {
-  const user = mockUsers[username as keyof typeof mockUsers];
-  
-  if (!user) {
-    return <span className="text-sm">{username}</span>;
-  }
-
-  return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <button className="flex items-center space-x-2 text-sm hover:text-primary transition-colors">
-          <User className="h-4 w-4" />
-          <span>{username}</span>
-        </button>
-      </PopoverTrigger>
-      <PopoverContent className="w-80 p-4">
-        <div className="space-y-3">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-              <User className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <h4 className="font-semibold">{user.name}</h4>
-              <p className="text-sm text-muted-foreground">{user.title}</p>
-            </div>
-          </div>
-          <div className="space-y-2 text-sm">
-            <div className="flex items-center space-x-2">
-              <Building className="h-4 w-4 text-muted-foreground" />
-              <span>{user.department}</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Mail className="h-4 w-4 text-muted-foreground" />
-              <span>{user.email}</span>
-            </div>
-          </div>
-        </div>
-      </PopoverContent>
-    </Popover>
-  );
-};
 
 export function Requests() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -286,7 +227,10 @@ export function Requests() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Requests</h1>
+          <div className="flex items-center space-x-3">
+            <FileText className="h-8 w-8 text-primary" />
+            <h1 className="text-3xl font-bold">Requests</h1>
+          </div>
           <p className="text-muted-foreground mt-1">
             Manage and track all certificate of analysis requests
           </p>
@@ -485,11 +429,7 @@ export function Requests() {
                     </td>
                     <td className="px-2 py-2">
                       {isChild && (
-                        item.owner ? (
-                          <UserPopover username={item.owner} />
-                        ) : (
-                          <span className="text-xs text-muted-foreground">Unassigned</span>
-                        )
+                        <MultipleOwnersDisplay owners={item.owner ? [item.owner] : []} />
                       )}
                     </td>
                     <td className="px-2 py-2 text-xs text-muted-foreground">
