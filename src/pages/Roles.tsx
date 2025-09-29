@@ -34,7 +34,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ConfirmationDialog } from "@/components/ConfirmationDialog";
-import { Search, Filter, Plus, User, Eye, Edit, Trash2 } from "lucide-react";
+import { Search, Filter, Plus, User, Eye, Edit, Trash2, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 // Mock user roles data - in real app this would come from API
@@ -228,7 +228,10 @@ export function Roles() {
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Roles</h1>
+          <div className="flex items-center space-x-3">
+            <Shield className="h-8 w-8 text-primary" />
+            <h1 className="text-2xl font-bold">Roles</h1>
+          </div>
           <p className="text-muted-foreground">
             Manage user assignments to part numbers and plant IDs
           </p>

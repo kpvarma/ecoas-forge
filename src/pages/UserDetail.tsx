@@ -1,9 +1,18 @@
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, User, Mail, Building, Briefcase, Clock, Shield } from "lucide-react";
+import { ArrowLeft, User, Mail, Building, Briefcase, Clock, Shield, Eye, Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { ConfirmationDialog } from "@/components/ConfirmationDialog";
 
 // Mock user data - in real app this would come from API
 const mockUserDetail = {
@@ -20,6 +29,31 @@ const mockUserDetail = {
   manager: "Jane Williams",
   location: "San Jose, CA"
 };
+
+// Mock user roles data - in real app this would come from API
+const mockUserRoles = [
+  {
+    id: "ROLE-1001",
+    user: "John Smith",
+    partNumber: "IPA-SG-99.9",
+    plantId: "PLT-001",
+    createdAt: "2024-01-10T09:00:00Z",
+  },
+  {
+    id: "ROLE-1002",
+    user: "John Smith", 
+    partNumber: "ACE-EG-99.5",
+    plantId: "PLT-002",
+    createdAt: "2024-01-08T14:30:00Z",
+  },
+  {
+    id: "ROLE-1003",
+    user: "John Smith",
+    partNumber: "MET-AL-98.7", 
+    plantId: "PLT-003",
+    createdAt: "2024-01-05T11:15:00Z",
+  }
+];
 
 const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString("en-GB", {
@@ -43,6 +77,16 @@ export function UserDetail() {
   const { id } = useParams();
   const user = mockUserDetail;
 
+  const handleDeleteRole = (roleId: string) => {
+    // Handle role deletion - in real app this would call an API
+    console.log(`Deleting role ${roleId}`);
+  };
+
+  const handleViewRequests = (partNumber: string, plantId: string, userId: string) => {
+    // Navigate to requests page with filters
+    window.open(`/requests?partNumber=${partNumber}&plantId=${plantId}&userId=${userId}`, '_blank');
+  };
+
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -55,7 +99,7 @@ export function UserDetail() {
         </Link>
       </div>
 
-      {/* User Profile Card */}
+      {/* User Summary Table */}
       <Card className="enterprise-card">
         <CardHeader>
           <div className="flex items-center space-x-4">
@@ -65,102 +109,122 @@ export function UserDetail() {
             <div>
               <CardTitle className="text-2xl">{user.name}</CardTitle>
               <p className="text-muted-foreground">{user.title}</p>
-              <div className="flex items-center space-x-2 mt-2">
-                <Badge variant={user.role === 'ADMIN' ? 'default' : 'secondary'} className="text-xs">
-                  {user.role}
-                </Badge>
-                <Badge variant={user.status === 'active' ? 'default' : 'secondary'} className="text-xs">
-                  {user.status.toUpperCase()}
-                </Badge>
-              </div>
             </div>
           </div>
         </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Contact Information */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Contact Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center space-x-3">
-                <Mail className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <div className="text-sm text-muted-foreground">Email</div>
-                  <div className="font-medium">{user.email}</div>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <Building className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <div className="text-sm text-muted-foreground">Location</div>
-                  <div className="font-medium">{user.location}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Work Information */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Work Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center space-x-3">
-                <Briefcase className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <div className="text-sm text-muted-foreground">Department</div>
-                  <div className="font-medium">{user.department}</div>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <User className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <div className="text-sm text-muted-foreground">Manager</div>
-                  <div className="font-medium">{user.manager}</div>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <Shield className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <div className="text-sm text-muted-foreground">Role</div>
+        <CardContent>
+          <Table>
+            <TableBody>
+              <TableRow>
+                <TableHead className="font-medium w-48">Email</TableHead>
+                <TableCell>{user.email}</TableCell>
+                <TableHead className="font-medium w-48">Department</TableHead>
+                <TableCell>{user.department}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableHead className="font-medium">Role</TableHead>
+                <TableCell>
                   <Badge variant={user.role === 'ADMIN' ? 'default' : 'secondary'} className="text-xs">
                     {user.role}
                   </Badge>
-                </div>
-              </div>
-            </div>
-          </div>
+                </TableCell>
+                <TableHead className="font-medium">Status</TableHead>
+                <TableCell>
+                  <Badge variant={user.status === 'active' ? 'default' : 'secondary'} className="text-xs">
+                    {user.status.toUpperCase()}
+                  </Badge>
+                </TableCell>
+              </TableRow>
+              <TableRow>
+                <TableHead className="font-medium">Phone</TableHead>
+                <TableCell>{user.phone}</TableCell>
+                <TableHead className="font-medium">Location</TableHead>
+                <TableCell>{user.location}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableHead className="font-medium">Manager</TableHead>
+                <TableCell>{user.manager}</TableCell>
+                <TableHead className="font-medium">Account Created</TableHead>
+                <TableCell>{formatDate(user.created_at)}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableHead className="font-medium">Last Login</TableHead>
+                <TableCell>{formatDateTime(user.last_login)}</TableCell>
+                <TableHead className="font-medium"></TableHead>
+                <TableCell></TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
-          <Separator />
+      {/* User Roles Table */}
+      <Card className="enterprise-card">
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Shield className="h-5 w-5" />
+            <span>User Roles</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Role ID</TableHead>
+                <TableHead>Part Number</TableHead>
+                <TableHead>Plant ID</TableHead>
+                <TableHead>Created At</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {mockUserRoles.map((role) => (
+                <TableRow key={role.id}>
+                  <TableCell className="font-medium">{role.id}</TableCell>
+                  <TableCell>{role.partNumber}</TableCell>
+                  <TableCell>{role.plantId}</TableCell>
+                  <TableCell>{formatDate(role.createdAt)}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                        onClick={() => handleViewRequests(role.partNumber, role.plantId, user.id)}
+                        title="View requests"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Link to={`/roles/${role.id}/edit`}>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="Edit role">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </Link>
+                      <ConfirmationDialog
+                        title="Delete Role"
+                        description={`Are you sure you want to delete role ${role.id}? This action cannot be undone.`}
+                        onConfirm={() => handleDeleteRole(role.id)}
+                        triggerButton={
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="Delete role">
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        }
+                      />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
-          {/* System Information */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4">System Information</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center space-x-3">
-                <Clock className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <div className="text-sm text-muted-foreground">Last Login</div>
-                  <div className="font-medium">{formatDateTime(user.last_login)}</div>
-                </div>
-              </div>
-              <div className="flex items-center space-x-3">
-                <User className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <div className="text-sm text-muted-foreground">Account Created</div>
-                  <div className="font-medium">{formatDate(user.created_at)}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* SSO Notice */}
-          <div className="bg-muted/50 p-4 rounded-lg">
-            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-              <Shield className="h-4 w-4" />
-              <span>Login is managed by Microsoft - Company SSO</span>
-            </div>
+      {/* SSO Notice */}
+      <Card className="enterprise-card">
+        <CardContent className="p-4">
+          <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+            <Shield className="h-4 w-4" />
+            <span>Login is managed by Microsoft - Company SSO</span>
           </div>
         </CardContent>
       </Card>

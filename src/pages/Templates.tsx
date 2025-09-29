@@ -17,7 +17,8 @@ import {
   ToggleRight,
   Code,
   Building,
-  Mail
+  Mail,
+  FolderOpen
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -299,7 +300,10 @@ export function Templates() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Templates</h1>
+          <div className="flex items-center space-x-3">
+            <FolderOpen className="h-8 w-8 text-primary" />
+            <h1 className="text-3xl font-bold">Templates</h1>
+          </div>
           <p className="text-muted-foreground mt-1">
             Manage XML templates for certificate of analysis generation
           </p>

@@ -163,7 +163,12 @@ export const OwnerBadge = ({ username }: { username: string }) => {
 // Multiple Users Display Component
 export const MultipleOwnersDisplay = ({ owners }: { owners: string[] }) => {
   if (!owners || owners.length === 0) {
-    return <span className="text-xs text-muted-foreground">Unassigned</span>;
+    return (
+      <Badge variant="outline" className="text-xs bg-muted text-muted-foreground border-muted-foreground/20">
+        <User className="h-3 w-3 mr-1" />
+        Unassigned
+      </Badge>
+    );
   }
 
   return (
