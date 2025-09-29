@@ -33,67 +33,74 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Search, Filter, Plus, User } from "lucide-react";
+import { ConfirmationDialog } from "@/components/ConfirmationDialog";
+import { Search, Filter, Plus, User, Eye, Edit, Trash2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 // Mock user roles data - in real app this would come from API
 const mockUserRoles = [
   {
     id: "1",
+    roleId: "ROLE-1001",
     user: {
       name: "John Smith",
       email: "john.smith@company.com"
     },
     role: "ADMIN",
-    part_numbers: ["PN001", "PN002", "PN003"],
-    plant_ids: ["P001", "P002"],
+    part_number: "PN001",
+    plant_id: "P001",
     hitl_enabled: true,
     created_at: "2024-01-15T08:30:00Z"
   },
   {
     id: "2",
+    roleId: "ROLE-1002",
     user: {
       name: "Sarah Johnson",
       email: "sarah.johnson@company.com"
     },
     role: "USER",
-    part_numbers: ["PN004", "PN005"],
-    plant_ids: ["P003"],
+    part_number: "PN004",
+    plant_id: "P003",
     hitl_enabled: false,
     created_at: "2024-01-14T14:20:00Z"
   },
   {
     id: "3",
+    roleId: "ROLE-1003",
     user: {
       name: "Michael Brown",
       email: "michael.brown@company.com"
     },
     role: "USER",
-    part_numbers: ["PN006"],
-    plant_ids: ["P001", "P004"],
+    part_number: "PN006",
+    plant_id: "P001",
     hitl_enabled: true,
     created_at: "2024-01-13T11:45:00Z"
   },
   {
     id: "4",
+    roleId: "ROLE-1004",
     user: {
       name: "Emily Davis",
       email: "emily.davis@company.com"
     },
     role: "ADMIN",
-    part_numbers: ["PN007", "PN008", "PN009", "PN010"],
-    plant_ids: ["P002", "P005"],
+    part_number: "PN007",
+    plant_id: "P002",
     hitl_enabled: false,
     created_at: "2024-01-12T09:15:00Z"
   },
   {
     id: "5",
+    roleId: "ROLE-1005",
     user: {
       name: "David Wilson",
       email: "david.wilson@company.com"
     },
     role: "USER",
-    part_numbers: ["PN011", "PN012"],
-    plant_ids: ["P003", "P004", "P005"],
+    part_number: "PN011",
+    plant_id: "P003",
     hitl_enabled: true,
     created_at: "2024-01-11T16:30:00Z"
   }
@@ -108,15 +115,38 @@ const mockUsers = [
   { id: "5", name: "David Wilson", email: "david.wilson@company.com" }
 ];
 
-const mockPartNumbers = ["PN001", "PN002", "PN003", "PN004", "PN005", "PN006", "PN007", "PN008", "PN009", "PN010", "PN011", "PN012"];
-const mockPlantIds = ["P001", "P002", "P003", "P004", "P005"];
+const mockPartNumbers = [
+  { id: "PN001", name: "PN001", description: "Engine Component A" },
+  { id: "PN002", name: "PN002", description: "Brake System B" },
+  { id: "PN003", name: "PN003", description: "Transmission C" },
+  { id: "PN004", name: "PN004", description: "Steering Wheel D" },
+  { id: "PN005", name: "PN005", description: "Suspension E" },
+  { id: "PN006", name: "PN006", description: "Exhaust System F" },
+  { id: "PN007", name: "PN007", description: "Air Filter G" },
+  { id: "PN008", name: "PN008", description: "Oil Filter H" },
+  { id: "PN009", name: "PN009", description: "Battery I" },
+  { id: "PN010", name: "PN010", description: "Alternator J" },
+  { id: "PN011", name: "PN011", description: "Radiator K" },
+  { id: "PN012", name: "PN012", description: "Carburetor L" }
+];
+
+const mockPlantIds = [
+  { id: "P001", name: "P001", description: "Detroit Manufacturing" },
+  { id: "P002", name: "P002", description: "Chicago Assembly" },
+  { id: "P003", name: "P003", description: "Houston Production" },
+  { id: "P004", name: "P004", description: "Phoenix Factory" },
+  { id: "P005", name: "P005", description: "Atlanta Facility" }
+];
 
 export function Roles() {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [showFilters, setShowFilters] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingRole, setEditingRole] = useState<any>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [roleToDelete, setRoleToDelete] = useState<any>(null);
   
   // Filter states
   const [selectedUser, setSelectedUser] = useState("");
@@ -131,13 +161,13 @@ export function Roles() {
   const filteredUserRoles = mockUserRoles.filter(userRole => {
     const matchesSearch = userRole.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          userRole.user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         userRole.part_numbers.some(pn => pn.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                         userRole.plant_ids.some(pid => pid.toLowerCase().includes(searchTerm.toLowerCase()));
+                         userRole.part_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         userRole.plant_id.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesUser = !selectedUser || userRole.user.name === selectedUser;
     const matchesRole = !selectedRole || userRole.role === selectedRole;
-    const matchesPartNo = !selectedPartNo || userRole.part_numbers.includes(selectedPartNo);
-    const matchesPlantId = !selectedPlantId || userRole.plant_ids.includes(selectedPlantId);
+    const matchesPartNo = !selectedPartNo || userRole.part_number === selectedPartNo;
+    const matchesPlantId = !selectedPlantId || userRole.plant_id === selectedPlantId;
     const matchesHitl = !selectedHitl || 
                        (selectedHitl === "Yes" && userRole.hitl_enabled) ||
                        (selectedHitl === "No" && !userRole.hitl_enabled);
@@ -172,6 +202,28 @@ export function Roles() {
     console.log(`Toggle HITL for user role ${id}`);
   };
 
+  const handleEdit = (role: any) => {
+    setEditingRole(role);
+    setIsFormOpen(true);
+  };
+
+  const handleDelete = (role: any) => {
+    setRoleToDelete(role);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDelete = () => {
+    // In real app, this would make API call to delete the user role
+    console.log('Delete user role:', roleToDelete?.id);
+    setDeleteConfirmOpen(false);
+    setRoleToDelete(null);
+  };
+
+  const handleViewRequests = (role: any) => {
+    // Navigate to requests page with filters
+    navigate(`/requests?partNumber=${role.part_number}&plantId=${role.plant_id}&userId=${role.user.email}`);
+  };
+
   return (
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
@@ -190,7 +242,7 @@ export function Roles() {
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>{editingRole ? "Edit Assignment" : "Add New Assignment"}</DialogTitle>
+              <DialogTitle>{editingRole ? "Edit Role" : "Add New Role"}</DialogTitle>
             </DialogHeader>
             <RoleForm 
               role={editingRole} 
@@ -269,8 +321,8 @@ export function Roles() {
                 </SelectTrigger>
                 <SelectContent>
                   {mockPartNumbers.map((partNo) => (
-                    <SelectItem key={partNo} value={partNo}>
-                      {partNo}
+                    <SelectItem key={partNo.id} value={partNo.name}>
+                      {partNo.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -285,8 +337,8 @@ export function Roles() {
                 </SelectTrigger>
                 <SelectContent>
                   {mockPlantIds.map((plantId) => (
-                    <SelectItem key={plantId} value={plantId}>
-                      {plantId}
+                    <SelectItem key={plantId.id} value={plantId.name}>
+                      {plantId.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -322,16 +374,17 @@ export function Roles() {
             <TableRow>
               <TableHead>User</TableHead>
               <TableHead>Role</TableHead>
-              <TableHead>Part Numbers</TableHead>
-              <TableHead>Plant IDs</TableHead>
+              <TableHead>Part Number</TableHead>
+              <TableHead>Plant ID</TableHead>
               <TableHead>HITL</TableHead>
               <TableHead>Created At</TableHead>
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {currentUserRoles.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground">
+                <TableCell colSpan={7} className="text-center text-muted-foreground">
                   No user assignments found
                 </TableCell>
               </TableRow>
@@ -355,32 +408,10 @@ export function Roles() {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {userRole.part_numbers.slice(0, 2).map((partNo) => (
-                        <Badge key={partNo} variant="outline" className="text-xs">
-                          {partNo}
-                        </Badge>
-                      ))}
-                      {userRole.part_numbers.length > 2 && (
-                        <Badge variant="outline" className="text-xs">
-                          +{userRole.part_numbers.length - 2} more
-                        </Badge>
-                      )}
-                    </div>
+                    <div className="text-sm">{userRole.part_number}</div>
                   </TableCell>
                   <TableCell>
-                    <div className="flex flex-wrap gap-1">
-                      {userRole.plant_ids.slice(0, 2).map((plantId) => (
-                        <Badge key={plantId} variant="outline" className="text-xs">
-                          {plantId}
-                        </Badge>
-                      ))}
-                      {userRole.plant_ids.length > 2 && (
-                        <Badge variant="outline" className="text-xs">
-                          +{userRole.plant_ids.length - 2} more
-                        </Badge>
-                      )}
-                    </div>
+                    <div className="text-sm">{userRole.plant_id}</div>
                   </TableCell>
                   <TableCell>
                     <Switch
@@ -391,6 +422,34 @@ export function Roles() {
                   <TableCell>
                     <div className="text-xs text-muted-foreground">
                       {formatDate(userRole.created_at)}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleViewRequests(userRole)}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEdit(userRole)}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDelete(userRole)}
+                        className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -438,6 +497,14 @@ export function Roles() {
           </Pagination>
         </div>
       )}
+
+      <ConfirmationDialog
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        title="Delete Role Assignment"
+        description={`Are you sure you want to delete the role assignment for ${roleToDelete?.user?.name}? This action cannot be undone.`}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }
@@ -446,8 +513,8 @@ export function Roles() {
 function RoleForm({ role, onClose, onSave }: { role: any; onClose: () => void; onSave: () => void }) {
   const [formData, setFormData] = useState({
     user: role?.user?.name || "",
-    partNo: role?.part_numbers?.[0] || "",
-    plantId: role?.plant_ids?.[0] || "",
+    partNo: role?.part_number || "",
+    plantId: role?.plant_id || "",
     hitlEnabled: role?.hitl_enabled ? "Yes" : "No"
   });
 
@@ -460,8 +527,15 @@ function RoleForm({ role, onClose, onSave }: { role: any; onClose: () => void; o
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {role && (
+        <div>
+          <label className="text-sm font-medium mb-2 block">Role ID</label>
+          <Input value={role.roleId} disabled className="bg-muted" />
+        </div>
+      )}
+      
       <div>
-        <label className="text-sm font-medium mb-2 block">User</label>
+        <label className="text-sm font-medium mb-2 block">Select User</label>
         <Select value={formData.user} onValueChange={(value) => setFormData({...formData, user: value})}>
           <SelectTrigger>
             <SelectValue placeholder="Select user" />
@@ -469,7 +543,10 @@ function RoleForm({ role, onClose, onSave }: { role: any; onClose: () => void; o
           <SelectContent>
             {mockUsers.map((user) => (
               <SelectItem key={user.id} value={user.name}>
-                {user.name}
+                <div className="flex flex-col">
+                  <span>{user.name}</span>
+                  <span className="text-xs text-muted-foreground">{user.email}</span>
+                </div>
               </SelectItem>
             ))}
           </SelectContent>
@@ -477,15 +554,18 @@ function RoleForm({ role, onClose, onSave }: { role: any; onClose: () => void; o
       </div>
 
       <div>
-        <label className="text-sm font-medium mb-2 block">Part No</label>
+        <label className="text-sm font-medium mb-2 block">Part Number</label>
         <Select value={formData.partNo} onValueChange={(value) => setFormData({...formData, partNo: value})}>
           <SelectTrigger>
             <SelectValue placeholder="Select part number" />
           </SelectTrigger>
           <SelectContent>
             {mockPartNumbers.map((partNo) => (
-              <SelectItem key={partNo} value={partNo}>
-                {partNo}
+              <SelectItem key={partNo.id} value={partNo.name}>
+                <div className="flex flex-col">
+                  <span>{partNo.name}</span>
+                  <span className="text-xs text-muted-foreground">{partNo.description}</span>
+                </div>
               </SelectItem>
             ))}
           </SelectContent>
@@ -500,8 +580,11 @@ function RoleForm({ role, onClose, onSave }: { role: any; onClose: () => void; o
           </SelectTrigger>
           <SelectContent>
             {mockPlantIds.map((plantId) => (
-              <SelectItem key={plantId} value={plantId}>
-                {plantId}
+              <SelectItem key={plantId.id} value={plantId.name}>
+                <div className="flex flex-col">
+                  <span>{plantId.name}</span>
+                  <span className="text-xs text-muted-foreground">{plantId.description}</span>
+                </div>
               </SelectItem>
             ))}
           </SelectContent>
@@ -526,7 +609,7 @@ function RoleForm({ role, onClose, onSave }: { role: any; onClose: () => void; o
           Cancel
         </Button>
         <Button type="submit">
-          {role ? "Update" : "Add"}
+          Save
         </Button>
       </div>
     </form>
