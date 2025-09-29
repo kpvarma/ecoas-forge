@@ -27,7 +27,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Search, User, Mail, Building, Briefcase, Clock, Settings } from "lucide-react";
+import { Search, User, Mail, Building, Briefcase, Clock, Settings, Users2 } from "lucide-react";
 
 // Mock user data - in real app this would come from API
 const mockUsers = [
@@ -334,11 +334,18 @@ export function Users() {
                       </div>
                     </td>
                     <td className="px-2 py-2">
-                      <Link to={`/users/${user.id}`}>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                          <Settings className="h-4 w-4" />
-                        </Button>
-                      </Link>
+                      <div className="flex items-center space-x-1">
+                        <Link to={`/roles?user=${user.id}`}>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="View user roles">
+                            <Users2 className="h-4 w-4" />
+                          </Button>
+                        </Link>
+                        <Link to={`/users/${user.id}`}>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="User settings">
+                            <Settings className="h-4 w-4" />
+                          </Button>
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 ))

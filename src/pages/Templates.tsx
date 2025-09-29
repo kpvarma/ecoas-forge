@@ -44,6 +44,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Switch } from "@/components/ui/switch";
+import { MultipleOwnersDisplay } from "@/components/OwnerBadge";
 import { Template } from "@/types";
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -217,68 +218,6 @@ const StatusBadge = ({ status }: { status: string }) => {
   );
 };
 
-// User Badge with Popover Component
-const UserBadge = ({ username }: { username: string }) => {
-  const user = mockUsers[username as keyof typeof mockUsers];
-  
-  if (!user) {
-    return (
-      <Badge variant="secondary" className="text-xs">
-        <User className="h-3 w-3 mr-1" />
-        {username}
-      </Badge>
-    );
-  }
-
-  return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Badge variant="secondary" className="text-xs cursor-pointer hover:bg-secondary/80 transition-colors">
-          <User className="h-3 w-3 mr-1" />
-          {username}
-        </Badge>
-      </PopoverTrigger>
-      <PopoverContent className="w-80 p-4">
-        <div className="space-y-3">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-              <User className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <h4 className="font-semibold">{user.name}</h4>
-              <p className="text-sm text-muted-foreground">{user.title}</p>
-            </div>
-          </div>
-          <div className="space-y-2 text-sm">
-            <div className="flex items-center space-x-2">
-              <Building className="h-4 w-4 text-muted-foreground" />
-              <span>{user.department}</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Mail className="h-4 w-4 text-muted-foreground" />
-              <span>{user.email}</span>
-            </div>
-          </div>
-        </div>
-      </PopoverContent>
-    </Popover>
-  );
-};
-
-// Multiple Users Display Component
-const MultipleUsersDisplay = ({ owners }: { owners: string[] }) => {
-  if (!owners || owners.length === 0) {
-    return <span className="text-xs text-muted-foreground">Unassigned</span>;
-  }
-
-  return (
-    <div className="flex flex-wrap gap-1">
-      {owners.map((owner, index) => (
-        <UserBadge key={index} username={owner} />
-      ))}
-    </div>
-  );
-};
 
 export function Templates() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -586,7 +525,7 @@ export function Templates() {
                       </button>
                     </td>
                     <td className="px-2 py-2">
-                      <MultipleUsersDisplay owners={template.owners || []} />
+                      <MultipleOwnersDisplay owners={template.owners || []} />
                     </td>
                     <td className="px-2 py-2">
                       <Button

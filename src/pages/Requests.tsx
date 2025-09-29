@@ -41,34 +41,8 @@ import {
 import { Button as PaginationButton } from "@/components/ui/button";
 import { Request, FilterOptions } from "@/types";
 import { StatusBadge } from "@/components/StatusBadge";
+import { MultipleOwnersDisplay } from "@/components/OwnerBadge";
 
-// Mock users data for popover
-const mockUsers = {
-  "Jane Smith": {
-    name: "Jane Smith",
-    title: "Senior Quality Analyst",
-    department: "Quality Assurance",
-    email: "jane.smith@entegris.com"
-  },
-  "Mike Johnson": {
-    name: "Mike Johnson", 
-    title: "QC Supervisor",
-    department: "Quality Control",
-    email: "mike.johnson@entegris.com"
-  },
-  "Sarah Davis": {
-    name: "Sarah Davis",
-    title: "Lab Manager",
-    department: "Laboratory Services", 
-    email: "sarah.davis@entegris.com"
-  },
-  "Tom Wilson": {
-    name: "Tom Wilson",
-    title: "Quality Engineer",
-    department: "Quality Engineering",
-    email: "tom.wilson@entegris.com"
-  }
-};
 
 // Generate comprehensive mock data
 const generateMockRequests = (): Request[] => {
@@ -183,68 +157,6 @@ const formatLongDate = (dateString: string) => {
   return format(date, 'dd MMM yyyy');
 };
 
-// User Badge with Popover Component
-const UserBadge = ({ username }: { username: string }) => {
-  const user = mockUsers[username as keyof typeof mockUsers];
-  
-  if (!user) {
-    return (
-      <Badge variant="secondary" className="text-xs">
-        <User className="h-3 w-3 mr-1" />
-        {username}
-      </Badge>
-    );
-  }
-
-  return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Badge variant="secondary" className="text-xs cursor-pointer hover:bg-secondary/80 transition-colors">
-          <User className="h-3 w-3 mr-1" />
-          {username}
-        </Badge>
-      </PopoverTrigger>
-      <PopoverContent className="w-80 p-4">
-        <div className="space-y-3">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-              <User className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <h4 className="font-semibold">{user.name}</h4>
-              <p className="text-sm text-muted-foreground">{user.title}</p>
-            </div>
-          </div>
-          <div className="space-y-2 text-sm">
-            <div className="flex items-center space-x-2">
-              <Building className="h-4 w-4 text-muted-foreground" />
-              <span>{user.department}</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Mail className="h-4 w-4 text-muted-foreground" />
-              <span>{user.email}</span>
-            </div>
-          </div>
-        </div>
-      </PopoverContent>
-    </Popover>
-  );
-};
-
-// Multiple Users Display Component
-const MultipleUsersDisplay = ({ owners }: { owners: string[] }) => {
-  if (!owners || owners.length === 0) {
-    return <span className="text-xs text-muted-foreground">Unassigned</span>;
-  }
-
-  return (
-    <div className="flex flex-wrap gap-1">
-      {owners.map((owner, index) => (
-        <UserBadge key={index} username={owner} />
-      ))}
-    </div>
-  );
-};
 
 export function Requests() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -507,7 +419,7 @@ export function Requests() {
                     </td>
                     <td className="px-2 py-2">
                       {isChild && (
-                        <MultipleUsersDisplay owners={item.owner ? [item.owner] : []} />
+                        <MultipleOwnersDisplay owners={item.owner ? [item.owner] : []} />
                       )}
                     </td>
                     <td className="px-2 py-2 text-xs text-muted-foreground">
