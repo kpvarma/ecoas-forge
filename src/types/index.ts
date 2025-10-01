@@ -2,6 +2,7 @@
 
 export interface Request {
   id: string;
+  created_date:string;
   initiator_email: string;
   recipient_email: string;
   document_name: string;

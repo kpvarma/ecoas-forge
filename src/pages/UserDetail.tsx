@@ -163,6 +163,7 @@ export function UserDetail() {
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <Shield className="h-5 w-5" />
+            
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -194,7 +195,7 @@ export function UserDetail() {
                       >
                         <ClipboardList className="h-4 w-4" />
                       </Button>
-                      <Link to={`/roles/${role.id}/edit`}>
+                      <Link to={`/responsibilities/${role.id}/edit`}>
                         <Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="Edit role">
                           <Edit className="h-4 w-4" />
                         </Button>
