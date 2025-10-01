@@ -281,3 +281,5 @@ export function NewTemplate() {
     </div>
   );
 }
+
+export default NewTemplate;

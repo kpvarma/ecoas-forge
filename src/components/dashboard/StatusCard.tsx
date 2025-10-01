@@ -3,22 +3,22 @@ import { Card, CardContent } from "@/components/ui/card";
 
 type Props = {
   title: string;
-  count: number;
-  icon: any;
+  count: number | string;
+  icon?: React.ComponentType<any>;
   variant?: "default" | "success" | "warning" | "error";
 };
 
-export const StatusCard: React.FC<Props> = ({
+const StatusCard: React.FC<Props> = ({
   title,
   count,
   icon: Icon,
   variant = "default",
 }) => {
   const variantClasses: Record<string, string> = {
-    default: "border-border",
-    success: "border-success/20 bg-success-light",
-    warning: "border-warning/20 bg-warning-light",
-    error: "border-error/20 bg-error-light",
+    default: "",
+    success: "",
+    warning: "",
+    error: "",
   };
 
   const iconColor =
@@ -27,18 +27,18 @@ export const StatusCard: React.FC<Props> = ({
       : variant === "warning"
       ? "text-warning"
       : variant === "error"
-      ? "text-error"
+      ? "text-destructive"
       : "text-primary";
 
   return (
     <Card className={`enterprise-card ${variantClasses[variant]}`}>
-      <CardContent className="p-6">
+      <CardContent className="p-4">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-muted-foreground">{title}</p>
-            <p className="text-2xl font-bold">{count.toLocaleString()}</p>
+            <p className="text-2xl font-bold">{typeof count === "number" ? count.toLocaleString() : count}</p>
           </div>
-          <Icon className={`h-8 w-8 ${iconColor}`} />
+          {Icon && <Icon className={`h-8 w-8 ${iconColor}`} />}
         </div>
       </CardContent>
     </Card>

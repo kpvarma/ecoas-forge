@@ -17,7 +17,7 @@ const navigation = [
   { name: "Requests", href: "/requests", icon: FileText },
   { name: "Templates", href: "/templates", icon: FolderOpen },
   { name: "Users", href: "/users", icon: User },
-  { name: "Roles", href: "/roles", icon: Shield },
+  { name: "Responsibilities", href: "/responsibilities", icon: Shield },
 ];
 
 export function Layout() {
