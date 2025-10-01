@@ -21,9 +21,10 @@ export function Templates() {
 					</Button>
 				</Link>
 			</div>
-			<TemplatesTable />
+			<TemplatesTable  />
 		</div>
 	);
 }
 
 export default Templates;
+

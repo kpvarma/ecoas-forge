@@ -163,6 +163,7 @@ export function Responsibilities() {
         setIsFormOpen={setIsFormOpen}
         editingRole={editingRole}
         setEditingRole={setEditingRole}
+        hideControls={true}
       />
 
       <ResponsibilitiesFilter
@@ -182,6 +183,7 @@ export function Responsibilities() {
         setSelectedHitl={setSelectedHitl}
         clearFilters={clearFilters}
         setCurrentPage={setCurrentPage}
+        hideControls={true}
       />
 
       <ResponsibilitiesTable

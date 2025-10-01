@@ -14,6 +14,7 @@ interface ResponsibilitiesHeaderProps {
   setIsFormOpen: (isOpen: boolean) => void;
   editingRole: any; // Replace 'any' with actual type when available
   setEditingRole: (role: any) => void; // Replace 'any' with actual type when available
+  hideControls?: boolean; // New prop to hide controls
 }
 
 export function ResponsibilitiesHeader({
@@ -21,7 +22,12 @@ export function ResponsibilitiesHeader({
   setIsFormOpen,
   editingRole,
   setEditingRole,
+  hideControls = false, // Default to false
 }: ResponsibilitiesHeaderProps) {
+  if (hideControls) {
+    return null; // Render nothing if hideControls is true
+  }
+
   return (
     <div className="flex items-center justify-between">
       <div>

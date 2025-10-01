@@ -77,8 +77,8 @@ export function Requests() {
 
 	return (
 		<div className="p-6 space-y-6">
-			<RequestsHeader />
-
+			<RequestsHeader  />
+	
 			<RequestsFilter
 				searchTerm={searchTerm}
 				setSearchTerm={setSearchTerm}
@@ -94,6 +94,7 @@ export function Requests() {
 				setPartNumberFilter={setPartNumberFilter}
 				showFilters={showFilters}
 				setShowFilters={setShowFilters}
+				hideControls={true}
 			/>
 
 			<RequestsTable

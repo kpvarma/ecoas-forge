@@ -119,11 +119,11 @@ const formatDate = (dateString: string) => { const date = new Date(dateString); 
 const StatusBadge = ({ status }: { status: string }) => {
 	const getVariant = () => {
 		switch (status) {
-			case "active": return "bg-success/10 text-success border-success/20";
-			case "inactive": return "bg-warning/10 text-warning border-warning/20";
-			case "archived": return "bg-muted text-muted-foreground border-border";
-			case "deleted": return "bg-error/10 text-error border-error/20";
-			default: return "bg-muted text-muted-foreground border-border";
+			case "active": return "default";
+			case "inactive": return "secondary";
+			case "archived": return "outline";
+			case "deleted": return "destructive";
+			default: return "secondary";
 		}
 	};
 	const getIcon = () => {
@@ -135,17 +135,15 @@ const StatusBadge = ({ status }: { status: string }) => {
 			default: return null;
 		}
 	};
-	return (<Badge variant="outline" className={getVariant()}>{getIcon()}{status.toUpperCase()}</Badge>);
+	return (<Badge variant={getVariant()} className="text-xs">{getIcon()}{status.toUpperCase()}</Badge>);
 };
 
 export function TemplatesTable() {
 	const [searchTerm, setSearchTerm] = useState("");
 	const [showFilters, setShowFilters] = useState(false);
-	const [statusFilter, setStatusFilter] = useState<string>("all");
-	const [plantIdFilter, setPlantIdFilter] = useState<string>("all");
-	const [partNumberFilter, setPartNumberFilter] = useState<string>("all");
-	const [ownerFilter, setOwnerFilter] = useState<string>("all");
-	const [dateRangeFilter, setDateRangeFilter] = useState<string>("all");
+	const [statusFilter, setStatusFilter] = useState<string>("");
+	const [plantIdFilter, setPlantIdFilter] = useState<string>("");
+	const [ownerFilter, setOwnerFilter] = useState<string>("");
 	const [xmlDialogOpen, setXmlDialogOpen] = useState(false);
 	const [selectedTemplate, setSelectedTemplate] = useState<ExtendedTemplate | null>(null);
 	const [templates, setTemplates] = useState<ExtendedTemplate[]>(mockTemplates);
@@ -154,24 +152,22 @@ export function TemplatesTable() {
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 	const [templateToDelete, setTemplateToDelete] = useState<ExtendedTemplate | null>(null);
 
+	const uniquePlantIds = Array.from(new Set(templates.map(t => t.plant_id)));
+	const uniqueStatuses = Array.from(new Set(templates.map(t => t.status)));
+	const uniqueOwners = Array.from(new Set(templates.flatMap(t => t.owners || [])));
+
 	const filteredTemplates = templates.filter(template => {
-		const matchesSearch = template.part_no.toLowerCase().includes(searchTerm.toLowerCase()) || template.xml_file.toLowerCase().includes(searchTerm.toLowerCase()) || template.plant_id.toLowerCase().includes(searchTerm.toLowerCase());
-		const matchesStatus = statusFilter === "all" || template.status === statusFilter;
-		const matchesPlantId = plantIdFilter === "all" || template.plant_id === plantIdFilter;
-		const matchesPartNumber = partNumberFilter === "all" || template.part_no === partNumberFilter;
-		const matchesOwner = ownerFilter === "all" || (ownerFilter === "unassigned" && (!template.owners || template.owners.length === 0)) || (template.owners && template.owners.some(owner => owner.toLowerCase().replace(' ', '-') === ownerFilter));
-		let matchesDateRange = true;
-		if (dateRangeFilter !== "all") {
-			const templateDate = new Date(template.created_at);
-			const now = new Date();
-			const diffTime = now.getTime() - templateDate.getTime();
-			const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-			switch (dateRangeFilter) { case "last-30": matchesDateRange = diffDays <= 30; break; case "last-90": matchesDateRange = diffDays <= 90; break; case "last-year": matchesDateRange = diffDays <= 365; break; }
-		}
-		return matchesSearch && matchesStatus && matchesPlantId && matchesPartNumber && matchesOwner && matchesDateRange;
+		const matchesSearch = template.part_no.toLowerCase().includes(searchTerm.toLowerCase()) ||
+			template.xml_file.toLowerCase().includes(searchTerm.toLowerCase()) ||
+			template.plant_id.toLowerCase().includes(searchTerm.toLowerCase());
+
+		const matchesStatus = !statusFilter || template.status === statusFilter;
+		const matchesPlantId = !plantIdFilter || template.plant_id === plantIdFilter;
+		const matchesOwner = !ownerFilter || (ownerFilter === "unassigned" && (!template.owners || template.owners.length === 0)) || (template.owners && template.owners.includes(ownerFilter));
+
+		return matchesSearch && matchesStatus && matchesPlantId && matchesOwner;
 	});
 
-	// Pagination derived from filtered results
 	const totalItems = filteredTemplates.length;
 	const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
 	const startIndex = (currentPage - 1) * itemsPerPage;
@@ -209,256 +205,174 @@ export function TemplatesTable() {
 	};
 
 	return (
-		<div className="pt-0 space-y-6">
-			
-						<Card className="enterprise-card">
-							<CardContent className="p-4">
-								<div className="flex items-center justify-between space-x-4">
-									<div className="flex-1">
-										<div className="relative">
-											<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-											<Input
-												placeholder="Search templates by part number or filename..."
-												value={searchTerm}
-												onChange={(e) => setSearchTerm(e.target.value)}
-												className="pl-10"
-											/>
-										</div>
-									</div>
-									<Button
-										variant="outline"
-										onClick={() => setShowFilters(!showFilters)}
-									>
-										<Filter className="h-4 w-4 mr-2" />
-										Filters
-									</Button>
-								</div>
-
-								{showFilters && (
-									<div className="mt-4 p-4 border border-border rounded-lg bg-muted/30">
-										<div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-											<div>
-												<label className="text-sm font-medium block mb-2">Status</label>
-												<Select value={statusFilter} onValueChange={setStatusFilter}>
-													<SelectTrigger>
-														<SelectValue placeholder="All" />
-													</SelectTrigger>
-													<SelectContent className="bg-background border border-border">
-														<SelectItem value="all">All</SelectItem>
-														<SelectItem value="active">Active</SelectItem>
-														<SelectItem value="inactive">Inactive</SelectItem>
-														<SelectItem value="archived">Archived</SelectItem>
-														<SelectItem value="deleted">Deleted</SelectItem>
-													</SelectContent>
-												</Select>
-											</div>
-											<div>
-												<label className="text-sm font-medium block mb-2">Part Number</label>
-												<Select value={partNumberFilter} onValueChange={setPartNumberFilter}>
-													<SelectTrigger>
-														<SelectValue placeholder="All" />
-													</SelectTrigger>
-													<SelectContent className="bg-background border border-border">
-														<SelectItem value="all">All</SelectItem>
-														<SelectItem value="IPA-SG-99.9">IPA-SG-99.9</SelectItem>
-														<SelectItem value="ACE-EG-99.5">ACE-EG-99.5</SelectItem>
-														<SelectItem value="MET-UHP-99.999">MET-UHP-99.999</SelectItem>
-														<SelectItem value="ETH-AN-200P">ETH-AN-200P</SelectItem>
-														<SelectItem value="WAF-CZ-300MM">WAF-CZ-300MM</SelectItem>
-													</SelectContent>
-												</Select>
-											</div>
-											<div>
-												<label className="text-sm font-medium block mb-2">Owner</label>
-												<Select value={ownerFilter} onValueChange={setOwnerFilter}>
-													<SelectTrigger>
-														<SelectValue placeholder="All" />
-													</SelectTrigger>
-													<SelectContent className="bg-background border border-border">
-														<SelectItem value="all">All</SelectItem>
-														<SelectItem value="jane-smith">Jane Smith</SelectItem>
-														<SelectItem value="mike-johnson">Mike Johnson</SelectItem>
-														<SelectItem value="sarah-davis">Sarah Davis</SelectItem>
-														<SelectItem value="tom-wilson">Tom Wilson</SelectItem>
-														<SelectItem value="unassigned">Unassigned</SelectItem>
-													</SelectContent>
-												</Select>
-											</div>
-											<div>
-												<label className="text-sm font-medium block mb-2">Plant ID</label>
-												<Select value={plantIdFilter} onValueChange={setPlantIdFilter}>
-													<SelectTrigger>
-														<SelectValue placeholder="All" />
-													</SelectTrigger>
-													<SelectContent className="bg-background border border-border">
-														<SelectItem value="all">All</SelectItem>
-														<SelectItem value="PLT-001">PLT-001</SelectItem>
-														<SelectItem value="PLT-002">PLT-002</SelectItem>
-														<SelectItem value="PLT-003">PLT-003</SelectItem>
-													</SelectContent>
-												</Select>
-											</div>
-											<div>
-												<label className="text-sm font-medium block mb-2">Date Range</label>
-												<Select value={dateRangeFilter} onValueChange={setDateRangeFilter}>
-													<SelectTrigger>
-														<SelectValue placeholder="All time" />
-													</SelectTrigger>
-													<SelectContent className="bg-background border border-border">
-														<SelectItem value="all">All time</SelectItem>
-														<SelectItem value="last-30">Last 30 days</SelectItem>
-														<SelectItem value="last-90">Last 90 days</SelectItem>
-														<SelectItem value="last-year">Last year</SelectItem>
-													</SelectContent>
-												</Select>
-											</div>
-										</div>
-									</div>
-								)}
-							</CardContent>
-						</Card>
-
-					{/* Templates Statistics */}
-					<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-						<Card className="enterprise-card">
-							<CardContent className="p-4">
-								<div className="flex items-center justify-between">
-									<div>
-										<p className="text-sm text-muted-foreground">Total Templates</p>
-										<p className="text-2xl font-bold">{mockTemplates.length}</p>
-									</div>
-									<Archive className="h-8 w-8 text-primary" />
-								</div>
-							</CardContent>
-						</Card>
-				
-						<Card className="enterprise-card">
-							<CardContent className="p-4">
-								<div className="flex items-center justify-between">
-									<div>
-										<p className="text-sm text-muted-foreground">Active</p>
-										<p className="text-2xl font-bold text-success">{mockTemplates.filter(t => t.status === 'active').length}</p>
-									</div>
-									<CheckCircle className="h-8 w-8 text-success" />
-								</div>
-							</CardContent>
-						</Card>
-				
-						<Card className="enterprise-card">
-							<CardContent className="p-4">
-								<div className="flex items-center justify-between">
-									<div>
-										<p className="text-sm text-muted-foreground">Inactive</p>
-										<p className="text-2xl font-bold text-warning">{mockTemplates.filter(t => t.status === 'inactive').length}</p>
-									</div>
-									<AlertTriangle className="h-8 w-8 text-warning" />
-								</div>
-							</CardContent>
-						</Card>
-				
-						<Card className="enterprise-card">
-							<CardContent className="p-4">
-								<div className="flex items-center justify-between">
-									<div>
-										<p className="text-sm text-muted-foreground">Archived</p>
-										<p className="text-2xl font-bold text-muted-foreground">{mockTemplates.filter(t => t.status === 'archived').length}</p>
-									</div>
-									<Archive className="h-8 w-8 text-muted-foreground" />
-								</div>
-							</CardContent>
-						</Card>
+		<>
+			<div className="space-y-2 mb-4">
+				<div className="flex items-center">
+					<div className="flex-1">
+						<div className="relative">
+							<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+							<Input
+								placeholder="Search templates by part number, filename, or plant ID..."
+								value={searchTerm}
+								onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+								className="pl-10 py-2 w-full"
+							/>
+						</div>
 					</div>
-
-					{/* Templates Table */}
-					<Card className="enterprise-card">
-						<CardHeader>
-							<CardTitle>All Templates</CardTitle>
-						</CardHeader>
-						<CardContent className="p-0">
-							<div className="overflow-x-auto">
-								<table className="w-full">
-									<thead>
-										<tr className="border-b border-border">
-											<th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Template ID</th>
-											<th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Part Number</th>
-											<th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Plant ID</th>
-											<th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">XML File</th>
-											<th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Owner</th>
-											<th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Hintl</th>
-											<th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</th>
-											<th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Created At</th>
-											<th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Updated At</th>
-											<th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Actions</th>
-										</tr>
-									</thead>
-									<tbody className="divide-y divide-border">
-										{displayedTemplates.map((template) => (
-											<tr key={template.id} className="hover:bg-muted/50 transition-colors">
-												<td className="px-2 py-2"><div className="text-sm font-medium">{template.id}</div></td>
-												<td className="px-2 py-2"><div className="text-sm font-medium">{template.part_no}</div></td>
-												<td className="px-2 py-2"><div className="text-sm font-medium">{template.plant_id}</div></td>
-												<td className="px-2 py-2"><button onClick={() => handleViewXml(template)} className="text-sm font-mono text-primary hover:underline transition-colors">{template.xml_file}</button></td>
-												<td className="px-2 py-2"><MultipleOwnersDisplay owners={template.owners || []} /></td>
-												<td className="px-2 py-2"><Switch checked={template.hintl_enabled} onCheckedChange={() => toggleHintl(template.id)} /></td>
-												<td className="px-2 py-2"><StatusBadge status={template.status} /></td>
-												<td className="px-2 py-2 text-sm text-muted-foreground">{formatDate(template.created_at)}</td>
-												<td className="px-2 py-2 text-sm text-muted-foreground">{formatDate(template.updated_at)}</td>
-												<td className="px-2 py-2">
-													<div className="flex space-x-1">
-														<Button variant="ghost" size="sm" onClick={() => handleViewXml(template)}><Code className="h-4 w-4" /></Button>
-														<Button variant="ghost" size="sm" onClick={() => handleDownloadXml(template)}><Download className="h-4 w-4" /></Button>
-														<Link to={`/templates/${template.id}/edit`}><Button variant="ghost" size="sm"><Edit className="h-4 w-4" /></Button></Link>
-														<Button variant="ghost" size="sm" onClick={() => handleDeleteClick(template)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
-													</div>
-												</td>
-											</tr>
-										))}
-									</tbody>
-								</table>
-								</div>
-								<div className="px-6 py-4 border-t">
-									<PaginationControls
-										currentPage={currentPage}
-										totalPages={totalPages}
-										onPageChange={setCurrentPage}
-										totalItems={totalItems}
-										itemsPerPage={itemsPerPage}
-										startIndex={startIndex}
-										endIndex={endIndex}
-									/>
-								</div>
-							</CardContent>
-						</Card>
-
-						{/* XML Viewer Dialog */}
-						<Dialog open={xmlDialogOpen} onOpenChange={setXmlDialogOpen}>
-							<DialogContent className="max-w-4xl h-[80vh]">
-								<DialogHeader>
-									<DialogTitle className="flex items-center"><Code className="h-5 w-5 mr-2 text-primary" />XML Template: {selectedTemplate?.xml_file}</DialogTitle>
-									<DialogDescription>Part Number: {selectedTemplate?.part_no}</DialogDescription>
-								</DialogHeader>
-								<div className="flex-1 overflow-hidden"><div className="h-full overflow-auto"><SyntaxHighlighter language="xml" style={tomorrow} className="!bg-muted/30 !m-0 h-full text-sm rounded-lg" customStyle={{ margin: 0, padding: '1rem', background: 'hsl(var(--muted) / 0.3)', height: '100%', overflow: 'auto', borderRadius: '0.5rem' }}>{mockXmlContent}</SyntaxHighlighter></div></div>
-								<DialogFooter className="flex justify-between"><Button variant="outline" onClick={() => selectedTemplate && handleDownloadXml(selectedTemplate)}><Download className="h-4 w-4 mr-2"/>Download</Button><Button onClick={() => setXmlDialogOpen(false)}><X className="h-4 w-4 mr-2"/>Close</Button></DialogFooter>
-								</DialogContent>
-							</Dialog>
-
-							{/* Delete Confirmation Dialog */}
-							<AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-								<AlertDialogContent>
-									<AlertDialogHeader>
-										<AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-										<AlertDialogDescription>
-											This action cannot be undone. This will permanently delete the template "{templateToDelete?.part_no}" (ID: {templateToDelete?.id}).
-										</AlertDialogDescription>
-									</AlertDialogHeader>
-									<AlertDialogFooter>
-										<AlertDialogCancel>Cancel</AlertDialogCancel>
-										<AlertDialogAction onClick={handleDeleteTemplate}>Delete</AlertDialogAction>
-									</AlertDialogFooter>
-								</AlertDialogContent>
-							</AlertDialog>
+					<div className="ml-3">
+						<Button variant="outline" className="h-10" onClick={() => setShowFilters(!showFilters)}>
+							<Filter className="h-4 w-4 mr-2" />
+							Filters
+						</Button>
 					</div>
-				);
-			}
+				</div>
 
-		export default TemplatesTable;
+				{showFilters && (
+					<div className="p-3 border border-border rounded-lg bg-muted/30">
+						<div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+							<div>
+								<label className="text-sm font-medium block mb-1">Status</label>
+								<Select value={statusFilter} onValueChange={(value) => { setStatusFilter(value === "all" ? "" : value); setCurrentPage(1); }}>
+									<SelectTrigger>
+										<SelectValue placeholder="All Status" />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="all">All Status</SelectItem>
+										{uniqueStatuses.map((status) => (<SelectItem key={status} value={status}>{status.charAt(0).toUpperCase() + status.slice(1)}</SelectItem>))}
+									</SelectContent>
+								</Select>
+							</div>
+
+							<div>
+								<label className="text-sm font-medium block mb-1">Plant ID</label>
+								<Select value={plantIdFilter} onValueChange={(value) => { setPlantIdFilter(value === "all" ? "" : value); setCurrentPage(1); }}>
+									<SelectTrigger>
+										<SelectValue placeholder="All Plant IDs" />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="all">All Plant IDs</SelectItem>
+										{uniquePlantIds.map((id) => (<SelectItem key={id} value={id}>{id}</SelectItem>))}
+									</SelectContent>
+								</Select>
+							</div>
+
+							<div>
+								<label className="text-sm font-medium block mb-1">Owner</label>
+								<Select value={ownerFilter} onValueChange={(value) => { setOwnerFilter(value === "all" ? "" : value); setCurrentPage(1); }}>
+									<SelectTrigger>
+										<SelectValue placeholder="All Owners" />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="all">All Owners</SelectItem>
+										<SelectItem value="unassigned">Unassigned</SelectItem>
+										{uniqueOwners.map((owner) => (<SelectItem key={owner} value={owner}>{owner}</SelectItem>))}
+									</SelectContent>
+								</Select>
+							</div>
+						</div>
+
+						<div className="flex justify-end mt-2">
+							<Button variant="outline" size="sm" onClick={() => { setStatusFilter(""); setPlantIdFilter(""); setOwnerFilter(""); setCurrentPage(1); }}>
+								Clear
+							</Button>
+						</div>
+					</div>
+				)}
+			</div>
+
+			<div className="rounded-md border">
+				<table className="w-full">
+					<thead>
+						<tr className="border-b border-border">
+							<th className="px-3 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Template</th>
+							<th className="px-3 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Plant ID</th>
+							<th className="px-3 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Owner</th>
+							<th className="px-3 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</th>
+							<th className="px-3 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Updated At</th>
+							<th className="px-3 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Actions</th>
+						</tr>
+					</thead>
+					<tbody className="divide-y divide-border">
+						{displayedTemplates.length === 0 ? (
+							<tr>
+								<td colSpan={6} className="px-3 py-3 text-center text-muted-foreground">No templates found</td>
+							</tr>
+						) : (
+							displayedTemplates.map((template) => (
+								<tr key={template.id} className="hover:bg-muted/50 transition-colors">
+									<td className="px-3 py-3">
+										<div className="flex items-center space-x-3">
+											<div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+												<FolderOpen className="h-4 w-4 text-primary" />
+											</div>
+											<div>
+												<button onClick={() => handleViewXml(template)} className="text-sm font-medium text-primary hover:underline">{template.part_no}</button>
+												<div className="text-xs text-muted-foreground flex items-center"><Code className="h-3 w-3 mr-1" />{template.xml_file}</div>
+											</div>
+										</div>
+									</td>
+									<td className="px-3 py-3"><div className="flex items-center text-sm"><Building className="h-3 w-3 mr-2 text-muted-foreground" />{template.plant_id}</div></td>
+									<td className="px-3 py-3"><MultipleOwnersDisplay owners={template.owners || []} /></td>
+									<td className="px-3 py-3"><StatusBadge status={template.status} /></td>
+									<td className="px-3 py-3"><div className="flex items-center text-xs text-muted-foreground">{formatDate(template.updated_at)}</div></td>
+									<td className="px-3 py-3">
+										<div className="flex items-center space-x-1">
+											<Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="View XML" onClick={() => handleViewXml(template)}><Eye className="h-4 w-4" /></Button>
+											<Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="Download XML" onClick={() => handleDownloadXml(template)}><Download className="h-4 w-4" /></Button>
+											<Link to={`/templates/${template.id}/edit`}>
+												<Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="Edit Template"><Edit className="h-4 w-4" /></Button>
+											</Link>
+											<Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="Delete Template" onClick={() => handleDeleteClick(template)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+										</div>
+									</td>
+								</tr>
+							))
+						)}
+					</tbody>
+				</table>
+			</div>
+
+			{totalPages > 1 && (
+				<PaginationControls
+					currentPage={currentPage}
+					totalPages={totalPages}
+					onPageChange={setCurrentPage}
+					totalItems={totalItems}
+					itemsPerPage={itemsPerPage}
+					startIndex={startIndex}
+					endIndex={endIndex}
+				/>
+			)}
+
+			{/* XML Viewer Dialog */}
+			<Dialog open={xmlDialogOpen} onOpenChange={setXmlDialogOpen}>
+				<DialogContent className="max-w-4xl h-[80vh]">
+					<DialogHeader>
+						<DialogTitle className="flex items-center"><Code className="h-5 w-5 mr-2 text-primary" />XML Template: {selectedTemplate?.xml_file}</DialogTitle>
+						<DialogDescription>Part Number: {selectedTemplate?.part_no}</DialogDescription>
+					</DialogHeader>
+					<div className="flex-1 overflow-hidden"><div className="h-full overflow-auto"><SyntaxHighlighter language="xml" style={tomorrow} className="!bg-muted/30 !m-0 h-full text-sm rounded-lg" customStyle={{ margin: 0, padding: '1rem', background: 'hsl(var(--muted) / 0.3)', height: '100%', overflow: 'auto', borderRadius: '0.5rem' }}>{mockXmlContent}</SyntaxHighlighter></div></div>
+					<DialogFooter className="flex justify-between"><Button variant="outline" onClick={() => selectedTemplate && handleDownloadXml(selectedTemplate)}><Download className="h-4 w-4 mr-2"/>Download</Button><Button onClick={() => setXmlDialogOpen(false)}><X className="h-4 w-4 mr-2"/>Close</Button></DialogFooter>
+				</DialogContent>
+			</Dialog>
+
+			{/* Delete Confirmation Dialog */}
+			<AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+						<AlertDialogDescription>
+							This action cannot be undone. This will permanently delete the template "{templateToDelete?.part_no}" (ID: {templateToDelete?.id}).
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<AlertDialogAction onClick={handleDeleteTemplate}>Delete</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
+		</>
+	);
+}
+
+export default TemplatesTable;

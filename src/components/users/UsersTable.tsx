@@ -57,7 +57,7 @@ export default function UsersTable({ users, itemsPerPage = 10, onSelectUser }: {
 
   return (
     <>
-      <div className="space-y-2">
+      <div className="space-y-2 mb-4">
         <div className="flex items-center">
           <div className="flex-1">
             <div className="relative">
@@ -131,7 +131,7 @@ export default function UsersTable({ users, itemsPerPage = 10, onSelectUser }: {
         )}
       </div>
 
-      <div className="rounded-md border">
+      <div className="rounded-md border mt-4">
         <table className="w-full">
           <thead>
             <tr className="border-b border-border">
