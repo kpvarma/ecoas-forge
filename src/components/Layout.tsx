@@ -30,8 +30,8 @@ export function Layout() {
         <div className="flex h-16 items-center justify-between px-6">
           <div className="flex items-center space-x-8">
             <div className="flex items-center space-x-3">
-              <div className="h-8 w-8 rounded bg-gray-100 flex items-center justify-center">
-                <img src="/logo.svg" alt="eCoA logo" className="h-6 w-8" />
+              <div className="h-8 w-8 rounded bg-primary flex items-center justify-center">
+                <img src="/logo_white.svg" alt="eCoA logo" className="h-6 w-8" />
               </div>
               <h1 className="text-xl font-bold text-foreground">eCoA</h1>
             </div>
