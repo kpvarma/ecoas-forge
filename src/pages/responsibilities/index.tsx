@@ -163,7 +163,6 @@ export function Responsibilities() {
         setIsFormOpen={setIsFormOpen}
         editingRole={editingRole}
         setEditingRole={setEditingRole}
-        hideControls={true}
       />
 
       <ResponsibilitiesFilter

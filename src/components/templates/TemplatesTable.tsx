@@ -207,7 +207,7 @@ export function TemplatesTable() {
 	return (
 		<>
 			<div className="space-y-2 mb-4">
-				<div className="flex items-center">
+				<div className="flex items-center" style={{display:'none'}}>
 					<div className="flex-1">
 						<div className="relative">
 							<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -228,7 +228,7 @@ export function TemplatesTable() {
 				</div>
 
 				{showFilters && (
-					<div className="p-3 border border-border rounded-lg bg-muted/30">
+					<div className="p-3 border border-border rounded-lg bg-muted/30"  style={{display:'none'}}>
 						<div className="grid grid-cols-1 md:grid-cols-3 gap-3">
 							<div>
 								<label className="text-sm font-medium block mb-1">Status</label>
