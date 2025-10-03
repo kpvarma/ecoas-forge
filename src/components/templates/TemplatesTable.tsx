@@ -285,8 +285,7 @@ export function TemplatesTable() {
 					<thead>
 						<tr className="border-b border-border">
 							<th className="px-3 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Template</th>
-							<th className="px-3 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Plant ID</th>
-							<th className="px-3 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Owner</th>
+							<th className="px-3 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Part ID</th>
 							<th className="px-3 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</th>
 							<th className="px-3 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Updated At</th>
 							<th className="px-3 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Actions</th>
@@ -312,7 +311,6 @@ export function TemplatesTable() {
 										</div>
 									</td>
 									<td className="px-3 py-3"><div className="flex items-center text-sm"><Building className="h-3 w-3 mr-2 text-muted-foreground" />{template.plant_id}</div></td>
-									<td className="px-3 py-3"><MultipleOwnersDisplay owners={template.owners || []} /></td>
 									<td className="px-3 py-3"><StatusBadge status={template.status} /></td>
 									<td className="px-3 py-3"><div className="flex items-center text-xs text-muted-foreground">{formatDate(template.updated_at)}</div></td>
 									<td className="px-3 py-3">

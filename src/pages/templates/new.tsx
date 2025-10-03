@@ -23,15 +23,19 @@ const mockUsers = [
   "Tom Wilson"
 ];
 
+const mockPartNumbers = [
+  "IPA-SG-99.9",
+  "IPA-SG-99.5",
+  "IPA-SG-99.0",
+  "IPA-SG-98.0",
+];
+
 export function NewTemplate() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     partNumber: "",
-    plantId: "",
-    owner: "",
     hintl: false,
-    description: "",
     xmlFile: null as File | null
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -63,14 +67,6 @@ export function NewTemplate() {
       return;
     }
 
-    if (!formData.plantId.trim()) {
-      toast({
-        title: "Validation Error",
-        description: "Plant ID is required.",
-        variant: "destructive",
-      });
-      return;
-    }
 
     if (!formData.xmlFile) {
       toast({
@@ -96,26 +92,24 @@ export function NewTemplate() {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="flex items-center space-x-4">
-        <Button 
-          variant="outline" 
-          onClick={() => navigate('/templates')}
-          className="flex items-center"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Templates
-        </Button>
-        <div>
+    <div className="p-6">
+      <Button
+        variant="outline"
+        onClick={() => navigate('/templates')}
+        className="flex items-center mb-6"
+      >
+        <ArrowLeft className="h-4 w-4 mr-2" />
+        Back to Templates
+      </Button>
+      <div className="max-w-2xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex flex-col items-center text-center">
           <h1 className="text-3xl font-bold">New Template</h1>
           <p className="text-muted-foreground mt-1">
             Create a new XML template for certificate of analysis generation
           </p>
         </div>
-      </div>
 
-      <div className="max-w-2xl">
         <Card className="enterprise-card">
           <CardHeader>
             <CardTitle className="flex items-center">
@@ -130,28 +124,23 @@ export function NewTemplate() {
                 <Label htmlFor="partNumber" className="text-sm font-medium">
                   Part Number <span className="text-destructive">*</span>
                 </Label>
-                <Input
-                  id="partNumber"
-                  placeholder="e.g., IPA-SG-99.9"
+                <Select
                   value={formData.partNumber}
-                  onChange={(e) => setFormData(prev => ({ ...prev, partNumber: e.target.value }))}
-                  className="w-full"
-                />
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, partNumber: value }))}
+                >
+                  <SelectTrigger id="partNumber" className="w-full">
+                    <SelectValue placeholder="Select a part number" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {mockPartNumbers.map((partNumber) => (
+                      <SelectItem key={partNumber} value={partNumber}>
+                        {partNumber}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
-              {/* Plant ID */}
-              <div className="space-y-2">
-                <Label htmlFor="plantId" className="text-sm font-medium">
-                  Plant ID <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="plantId"
-                  placeholder="e.g., PLT-001"
-                  value={formData.plantId}
-                  onChange={(e) => setFormData(prev => ({ ...prev, plantId: e.target.value }))}
-                  className="w-full"
-                />
-              </div>
 
               {/* XML File Upload */}
               <div className="space-y-2">
@@ -189,28 +178,6 @@ export function NewTemplate() {
                 )}
               </div>
 
-              {/* Owner */}
-              <div className="space-y-2">
-                <Label htmlFor="owner" className="text-sm font-medium">
-                  Owner <span className="text-muted-foreground">(Optional)</span>
-                </Label>
-                <Select value={formData.owner} onValueChange={(value) => setFormData(prev => ({ ...prev, owner: value }))}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select owner or leave unassigned" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-background border border-border">
-                    <SelectItem value="unassigned">Unassigned</SelectItem>
-                    {mockUsers.map((user) => (
-                      <SelectItem key={user} value={user}>
-                        <div className="flex items-center space-x-2">
-                          <User className="h-4 w-4" />
-                          <span>{user}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
 
               {/* HINTL */}
               <div className="space-y-2">
@@ -232,31 +199,18 @@ export function NewTemplate() {
                 </div>
               </div>
 
-              {/* Description */}
-              <div className="space-y-2">
-                <Label htmlFor="description" className="text-sm font-medium">
-                  Description <span className="text-muted-foreground">(Optional)</span>
-                </Label>
-                <Textarea
-                  id="description"
-                  placeholder="Enter a description for this template..."
-                  value={formData.description}
-                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  className="min-h-[100px]"
-                />
-              </div>
 
               {/* Submit Buttons */}
               <div className="flex justify-end space-x-3 pt-4">
-                <Button 
-                  type="button" 
+                <Button
+                  type="button"
                   variant="outline"
                   onClick={() => navigate('/templates')}
                   disabled={isSubmitting}
                 >
                   Cancel
                 </Button>
-                <Button 
+                <Button
                   type="submit"
                   disabled={isSubmitting}
                   className="bg-primary hover:bg-primary/90"

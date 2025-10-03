@@ -31,7 +31,7 @@ export function Layout() {
           <div className="flex items-center space-x-8">
             <div className="flex items-center space-x-3">
               <div className="h-8 w-8 rounded bg-primary flex items-center justify-center">
-                <img src="/logo_white.svg" alt="eCoA logo" className="h-6 w-8" />
+                <img src="/new_logo_white.svg" alt="eCoA logo" className="h-6 w-8" />
               </div>
               <h1 className="text-xl font-bold text-foreground">eCoA</h1>
             </div>

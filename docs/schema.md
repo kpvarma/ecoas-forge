@@ -34,11 +34,7 @@ This table stores metadata about XML templates used for generating certificates 
 |---|---|---|---|---|
 | id | integer | Unique identifier for the template | No | |
 | part_id | varchar(255) | Part number associated with the template | No | |
-| plant_id | varchar(255) | Plant Name associated with the template | No | |
-| owner_id | Integer[] | Plant Name associated with the template | yes | |
-| xml_file | text | content of the XML | No | |
-| hintl_enabled | boolean | Indicates if Human-in-the-loop is enabled | Yes | |
-| description | Text | Description for the tamplate | Yes | |
+| xml_file_path | varchar(255) | content of the XML | No | |
 | status | enum | Current status of the template | No | inactive, active, archived, deleted |
 | created_at | datetime | Timestamp when the template was created | No | |
 | updated_at | datetime | Timestamp when the template was last updated | Yes | |
