@@ -13,9 +13,9 @@ export function Login() {
         {/* Logo and Title */}
         <div className="text-center mb-8">
           <div className="mx-auto h-16 w-16 rounded-full bg-primary flex items-center justify-center mb-4 shadow-lg">
-            <Building2 className="h-8 w-8 text-primary-foreground" />
+            <img src="/logo_white.svg" alt="eCoA logo" className="h-6 w-8" style={{width:"55px"}} />
           </div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">eCoA Service</h1>
+          <h1 className="text-3xl font-bold text-foreground mb-2">eCoA</h1>
           <p className="text-muted-foreground">Enterprise Certificate of Analysis Management</p>
         </div>
 
