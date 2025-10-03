@@ -1,6 +1,13 @@
 import { FileText } from "lucide-react";
 
-export function RequestsHeader() {
+interface RequestsHeaderProps {
+  hideControls?: boolean;
+}
+
+export function RequestsHeader({ hideControls = false }: RequestsHeaderProps) {
+  if (hideControls) {
+    return null;
+  }
   return (
     <div className="flex items-center justify-between">
       <div>

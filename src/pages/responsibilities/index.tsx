@@ -182,6 +182,7 @@ export function Responsibilities() {
         setSelectedHitl={setSelectedHitl}
         clearFilters={clearFilters}
         setCurrentPage={setCurrentPage}
+        hideControls={true}
       />
 
       <ResponsibilitiesTable

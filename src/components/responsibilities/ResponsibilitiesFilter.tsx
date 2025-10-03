@@ -58,6 +58,7 @@ interface ResponsibilitiesFilterProps {
   setSelectedHitl: (hitl: string) => void;
   clearFilters: () => void;
   setCurrentPage: (page: number) => void;
+  hideControls?: boolean; // New prop to hide controls
 }
 
 export function ResponsibilitiesFilter({
@@ -77,7 +78,12 @@ export function ResponsibilitiesFilter({
   setSelectedHitl,
   clearFilters,
   setCurrentPage,
+  hideControls = false, // Default to false
 }: ResponsibilitiesFilterProps) {
+  if (hideControls) {
+    return null; // Render nothing if hideControls is true
+  }
+
   return (
     <>
       {/* Search Bar and Filter Toggle */}

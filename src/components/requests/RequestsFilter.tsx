@@ -25,6 +25,7 @@ interface RequestsFilterProps {
   setPartNumberFilter: (partNumber: string) => void;
   showFilters: boolean;
   setShowFilters: (show: boolean) => void;
+  hideControls?: boolean; // New prop to hide controls
 }
 
 export function RequestsFilter({
@@ -42,7 +43,12 @@ export function RequestsFilter({
   setPartNumberFilter,
   showFilters,
   setShowFilters,
+  hideControls = false, // Default to false
 }: RequestsFilterProps) {
+  if (hideControls) {
+    return null; // Render nothing if hideControls is true
+  }
+
   return (
     <Card className="enterprise-card">
       <CardContent className="p-4">
