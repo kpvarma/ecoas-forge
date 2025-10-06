@@ -2,9 +2,8 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import { 
-	Search, 
-	Filter, 
-	Eye, 
+	Search,
+	Filter,
 	Plus,
 	Download,
 	Archive,
@@ -315,7 +314,7 @@ export function TemplatesTable() {
 									<td className="px-3 py-3"><div className="flex items-center text-xs text-muted-foreground">{formatDate(template.updated_at)}</div></td>
 									<td className="px-3 py-3">
 										<div className="flex items-center space-x-1">
-											<Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="View XML" onClick={() => handleViewXml(template)}><Eye className="h-4 w-4" /></Button>
+											<Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="View XML" onClick={() => handleViewXml(template)}><Code className="h-4 w-4" /></Button>
 											<Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="Download XML" onClick={() => handleDownloadXml(template)}><Download className="h-4 w-4" /></Button>
 											<Link to={`/templates/${template.id}/edit`}>
 												<Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="Edit Template"><Edit className="h-4 w-4" /></Button>

@@ -35,6 +35,7 @@ This table stores metadata about XML templates used for generating certificates 
 | id | integer | Unique identifier for the template | No | |
 | part_id | varchar(255) | Part number associated with the template | No | |
 | xml_file_path | varchar(255) | content of the XML | No | |
+| hintl_enabled | boolean | Indicates if Human-in-the-loop is enabled | Yes | |
 | status | enum | Current status of the template | No | inactive, active, archived, deleted |
 | created_at | datetime | Timestamp when the template was created | No | |
 | updated_at | datetime | Timestamp when the template was last updated | Yes | |
@@ -49,8 +50,7 @@ This table defines the responsibilities assigned to users for specific parts, pl
 | user_id | integer | Foreign key referencing the Users table | No | Users.id |
 | part_id | integer | Foreign key referencing the Part Numbers table | No | Part_Numbers.id |
 | plant_id | integer | Foreign key referencing the Plants table | No | Plants.id |
-| template_id | integer | Foreign key referencing the Templates table | No | Templates.id |
-| hintl_enabled | boolean | Indicates if Human-in-the-loop is enabled | Yes | |
+<!-- | hintl_enabled | boolean | Indicates if Human-in-the-loop is enabled | Yes | | -->
 | created_at | datetime | Timestamp when the record was created | No | |
 | updated_at | datetime | Timestamp when the record was last updated | Yes | |
 
@@ -62,7 +62,6 @@ This table stores information about requests made in the system.
 |---|---|---|---|---|
 | id | integer | Unique identifier for the request | No | |
 | RequestId | varchar(255) | Unique for the request | No | |
-| Created_Date | datetime | Timestamp when the record was created | No | 
 | originator_name | varchar(255) | Name of the request originator | Yes | |
 | originator_email | varchar(255) | Email of the request originator | Yes | |
 | recepient_email | varchar(255) | Email of the recipient | Yes | |
