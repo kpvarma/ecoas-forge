@@ -11,11 +11,17 @@ export interface Request {
   request_status: 'queued' | 'parsed' | 'parsing_failed' | 'error' | 'abandoned' | 'template_generated' | 'template_generation_failed';
   owner?: string;
   owner_status: 'unassigned' | 'assigned' | 'approved' | 'retried' | 'rejected';
+  /**
+   * @description Derived field: A high-level status aggregated from `request_status` and `owner_status` for display purposes.
+   */
   status: 'pending' | 'in_progress' | 'completed' | 'failed';
   created_at: string;
   updated_at: string;
   request_status_logs: StatusLog[];
   owner_status_logs?: StatusLog[];
+  /**
+   * @description Derived field: Aggregated status logs, potentially combining `request_status_logs` and `owner_status_logs`.
+   */
   status_logs?: StatusLog[];
   parent_id?: string;
   children?: Request[];
@@ -33,8 +39,10 @@ export interface StatusLog {
 export interface Template {
   id: string;
   part_no: string;
+  template_code?: string; // Added to align with mock data
   xml_file: string;
   created_at: string;
+  updated_at?: string; // Added to align with schema
   status: 'inactive' | 'active' | 'archived' | 'deleted';
 }
 

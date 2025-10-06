@@ -15,7 +15,8 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
-import { mockTemplates, ExtendedTemplate } from "@/components/templates/TemplatesTable";
+import { ExtendedTemplate } from "@/components/templates/TemplatesTable";
+import { mockTemplates } from "@/lib/mock/templates";
 
 const mockUsers = ["Jane Smith", "Mike Johnson", "Sarah Davis", "Tom Wilson"];
 
@@ -25,7 +26,7 @@ export function UpdateTemplate() {
     const { id } = useParams<{ id: string }>();
     const isEditMode = !!id;
 
-    const currentTemplate = isEditMode ? mockTemplates.find(t => t.id === id) : null;
+    const currentTemplate = isEditMode ? mockTemplates.find(t => t.id === id) as ExtendedTemplate : null;
 
     const [formData, setFormData] = useState({
         partNumber: currentTemplate?.part_no || "",
