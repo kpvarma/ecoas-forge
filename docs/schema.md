@@ -33,6 +33,7 @@ This table stores metadata about XML templates used for generating certificates 
 | Field Name | Data Type | Description | Optional | Enum Values |
 |---|---|---|---|---|
 | id | integer | Unique identifier for the template | No | |
+| tamplate_code | varchar(255) | auto generated template code | No | |
 | part_id | varchar(255) | Part number associated with the template | No | |
 | xml_file_path | varchar(255) | content of the XML | No | |
 | hintl_enabled | boolean | Indicates if Human-in-the-loop is enabled | Yes | |
@@ -50,7 +51,6 @@ This table defines the responsibilities assigned to users for specific parts, pl
 | user_id | integer | Foreign key referencing the Users table | No | Users.id |
 | part_id | integer | Foreign key referencing the Part Numbers table | No | Part_Numbers.id |
 | plant_id | integer | Foreign key referencing the Plants table | No | Plants.id |
-<!-- | hintl_enabled | boolean | Indicates if Human-in-the-loop is enabled | Yes | | -->
 | created_at | datetime | Timestamp when the record was created | No | |
 | updated_at | datetime | Timestamp when the record was last updated | Yes | |
 
