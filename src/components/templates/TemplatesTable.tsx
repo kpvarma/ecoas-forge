@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
-import { 
+import {
 	Search,
 	Filter,
+	Eye,
 	Plus,
 	Download,
 	Archive,
@@ -25,7 +26,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { 
+import {
 	Select,
 	SelectContent,
 	SelectItem,
@@ -62,12 +63,12 @@ import { Template } from "@/types";
 import { PaginationControls } from "@/components/common/PaginationControls";
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { templatesClient } from "@/lib/clients/templates";
 
 export interface ExtendedTemplate extends Template {
 	owners?: string[];
-	hintl_enabled: boolean;
-	updated_at: string;
-	plant_id: string;
+	hintl_enabled?: boolean;
+	plant_id?: string;
 }
 
 const mockUsers = {
@@ -76,14 +77,6 @@ const mockUsers = {
 	"Sarah Davis": { name: "Sarah Davis", title: "Lab Manager", department: "Laboratory Services", email: "sarah.davis@entegris.com" },
 	"Tom Wilson": { name: "Tom Wilson", title: "Quality Engineer", department: "Quality Engineering", email: "tom.wilson@entegris.com" }
 };
-
-export const mockTemplates: ExtendedTemplate[] = [
-	{ id: "TMPL-IPA-001", part_no: "IPA-SG-99.9", xml_file: "isopropanol_semiconductor_grade.xml", created_at: "2024-01-10T09:00:00Z", updated_at: "2024-01-15T14:30:00Z", status: "active", owners: ["Jane Smith", "Mike Johnson"], hintl_enabled: true, plant_id: "PLT-001" },
-	{ id: "TMPL-ACE-001", part_no: "ACE-EG-99.5", xml_file: "acetone_electronic_grade.xml", created_at: "2024-01-08T14:30:00Z", updated_at: "2024-01-12T10:15:00Z", status: "active", owners: ["Mike Johnson"], hintl_enabled: false, plant_id: "PLT-002" },
-	{ id: "TMPL-MET-001", part_no: "MET-UHP-99.999", xml_file: "methanol_ultra_high_purity.xml", created_at: "2024-01-05T11:15:00Z", updated_at: "2024-01-20T16:45:00Z", status: "archived", owners: [], hintl_enabled: true, plant_id: "PLT-003" },
-	{ id: "TMPL-ETH-001", part_no: "ETH-AN-200P", xml_file: "ethanol_anhydrous_200proof.xml", created_at: "2023-12-20T16:45:00Z", updated_at: "2024-01-05T09:30:00Z", status: "inactive", owners: ["Sarah Davis", "Tom Wilson"], hintl_enabled: false, plant_id: "PLT-001" },
-	{ id: "TMPL-WAF-001", part_no: "WAF-CZ-300MM", xml_file: "silicon_wafer_cz_300mm.xml", created_at: "2023-12-15T10:30:00Z", updated_at: "2023-12-18T13:20:00Z", status: "deleted", owners: [], hintl_enabled: true, plant_id: "PLT-002" }
-];
 
 const mockXmlContent = `<?xml version="1.0" encoding="UTF-8"?>
 <Certificate xmlns="http://www.entegris.com/coa" version="2.0">
@@ -145,15 +138,23 @@ export function TemplatesTable() {
 	const [ownerFilter, setOwnerFilter] = useState<string>("");
 	const [xmlDialogOpen, setXmlDialogOpen] = useState(false);
 	const [selectedTemplate, setSelectedTemplate] = useState<ExtendedTemplate | null>(null);
-	const [templates, setTemplates] = useState<ExtendedTemplate[]>(mockTemplates);
+	const [templates, setTemplates] = useState<ExtendedTemplate[]>([]);
 	const [currentPage, setCurrentPage] = useState(1);
 	const itemsPerPage = 10;
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 	const [templateToDelete, setTemplateToDelete] = useState<ExtendedTemplate | null>(null);
 
-	const uniquePlantIds = Array.from(new Set(templates.map(t => t.plant_id)));
+	useEffect(() => {
+		const fetchTemplates = async () => {
+			const fetchedTemplates = await templatesClient.index();
+			setTemplates(fetchedTemplates.map(t => ({ ...t, hintl_enabled: false, plant_id: "N/A", updated_at: t.created_at }))); // Add default values for new fields
+		};
+		fetchTemplates();
+	}, []);
+
+	const uniquePlantIds = Array.from(new Set(templates.map(t => t.plant_id).filter(Boolean) as string[]));
 	const uniqueStatuses = Array.from(new Set(templates.map(t => t.status)));
-	const uniqueOwners = Array.from(new Set(templates.flatMap(t => t.owners || [])));
+	const uniqueOwners = Array.from(new Set(templates.flatMap(t => t.owners || []).filter(Boolean) as string[]));
 
 	const filteredTemplates = templates.filter(template => {
 		const matchesSearch = template.part_no.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -206,7 +207,7 @@ export function TemplatesTable() {
 	return (
 		<>
 			<div className="space-y-2 mb-4">
-				<div className="flex items-center" style={{display:'none'}}>
+				<div className="flex items-center" >
 					<div className="flex-1">
 						<div className="relative">
 							<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -227,7 +228,7 @@ export function TemplatesTable() {
 				</div>
 
 				{showFilters && (
-					<div className="p-3 border border-border rounded-lg bg-muted/30"  style={{display:'none'}}>
+					<div className="p-3 border border-border rounded-lg bg-muted/30"  >
 						<div className="grid grid-cols-1 md:grid-cols-3 gap-3">
 							<div>
 								<label className="text-sm font-medium block mb-1">Status</label>
@@ -304,12 +305,11 @@ export function TemplatesTable() {
 												<FolderOpen className="h-4 w-4 text-primary" />
 											</div>
 											<div>
-												<button onClick={() => handleViewXml(template)} className="text-sm font-medium text-primary hover:underline">{template.part_no}</button>
-												<div className="text-xs text-muted-foreground flex items-center"><Code className="h-3 w-3 mr-1" />{template.xml_file}</div>
+												<button onClick={() => handleViewXml(template)} className="text-sm font-medium text-primary hover:underline">{template.template_code}</button>
 											</div>
 										</div>
 									</td>
-									<td className="px-3 py-3"><div className="flex items-center text-sm"><Building className="h-3 w-3 mr-2 text-muted-foreground" />{template.plant_id}</div></td>
+									<td className="px-3 py-3"><div className="flex items-center text-sm"><Building className="h-3 w-3 mr-2 text-muted-foreground" />{template.part_no}</div></td>
 									<td className="px-3 py-3"><StatusBadge status={template.status} /></td>
 									<td className="px-3 py-3"><div className="flex items-center text-xs text-muted-foreground">{formatDate(template.updated_at)}</div></td>
 									<td className="px-3 py-3">

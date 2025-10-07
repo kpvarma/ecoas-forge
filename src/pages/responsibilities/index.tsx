@@ -39,7 +39,7 @@ import { Search, Filter, Plus, User, ClipboardList, Edit, Trash2, Shield } from 
 import { useNavigate } from "react-router-dom";
 
 // Mock user roles data - in real app this would come from API
-const mockUserRoles = [
+const initialMockUserRoles = [
   {
     id: "1",
     roleId: "ROLE-1001",
@@ -141,6 +141,7 @@ const mockPlantIds = [
 
 export function Responsibilities() {
   const navigate = useNavigate();
+  const [userRoles, setUserRoles] = useState(initialMockUserRoles); // Use state for user roles
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [showFilters, setShowFilters] = useState(false);
@@ -159,7 +160,7 @@ export function Responsibilities() {
   const itemsPerPage = 10;
 
   // Filter user roles based on search term and filters
-  const filteredUserRoles = mockUserRoles.filter(userRole => {
+  const filteredUserRoles = userRoles.filter(userRole => {
     const matchesSearch = userRole.user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          userRole.user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          userRole.part_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -169,7 +170,7 @@ export function Responsibilities() {
     const matchesRole = !selectedRole || userRole.role === selectedRole;
     const matchesPartNo = !selectedPartNo || userRole.part_number === selectedPartNo;
     const matchesPlantId = !selectedPlantId || userRole.plant_id === selectedPlantId;
-    const matchesHitl = !selectedHitl || 
+    const matchesHitl = !selectedHitl ||
                        (selectedHitl === "Yes" && userRole.hitl_enabled) ||
                        (selectedHitl === "No" && !userRole.hitl_enabled);
 
@@ -185,7 +186,7 @@ export function Responsibilities() {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-GB", {
       day: "numeric",
-      month: "short", 
+      month: "short",
       year: "numeric"
     });
   };
@@ -199,7 +200,11 @@ export function Responsibilities() {
   };
 
   const toggleHitl = (id: string) => {
-    // In real app, this would make API call to update the user role
+    setUserRoles(prevRoles =>
+      prevRoles.map(role =>
+        role.id === id ? { ...role, hitl_enabled: !role.hitl_enabled } : role
+      )
+    );
     console.log(`Toggle HITL for user role ${id}`);
   };
 
@@ -214,7 +219,7 @@ export function Responsibilities() {
   };
 
   const confirmDelete = () => {
-    // In real app, this would make API call to delete the user role
+    setUserRoles(prevRoles => prevRoles.filter(role => role.id !== roleToDelete?.id));
     console.log('Delete user role:', roleToDelete?.id);
     setDeleteConfirmOpen(false);
     setRoleToDelete(null);

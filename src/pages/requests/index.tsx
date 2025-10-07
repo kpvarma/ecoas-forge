@@ -94,7 +94,7 @@ export function Requests() {
 				setPartNumberFilter={setPartNumberFilter}
 				showFilters={showFilters}
 				setShowFilters={setShowFilters}
-				hideControls={true}
+				hideControls={false}
 			/>
 
 			<RequestsTable
