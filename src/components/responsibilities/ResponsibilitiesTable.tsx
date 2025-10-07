@@ -24,7 +24,6 @@ interface ResponsibilitiesTableProps {
   currentUserRoles: UserRole[];
   formatDate: (dateString: string) => string;
   toggleHitl: (id: string) => void;
-  handleEdit: (role: UserRole) => void;
   handleDelete: (role: UserRole) => void;
   deleteConfirmOpen: boolean;
   setDeleteConfirmOpen: (isOpen: boolean) => void;
@@ -36,7 +35,6 @@ export function ResponsibilitiesTable({
   currentUserRoles,
   formatDate,
   toggleHitl,
-  handleEdit,
   handleDelete,
   deleteConfirmOpen,
   setDeleteConfirmOpen,
@@ -117,14 +115,6 @@ export function ResponsibilitiesTable({
                         className="h-8 w-8 p-0"
                       >
                         <ClipboardList className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEdit(userRole)}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Edit className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="ghost"
