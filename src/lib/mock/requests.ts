@@ -1,10 +1,9 @@
 import { Request } from "@/types";
-import { format } from "date-fns";
+import { formatDateTime } from "@/lib/utils";
 
 // Utility function to format date in long format
 export const formatLongDate = (dateString: string) => {
-	const date = new Date(dateString);
-	return format(date, 'dd MMM yyyy');
+	return formatDateTime(dateString);
 };
 
 // Generate comprehensive mock data
@@ -20,7 +19,7 @@ export const generateMockRequests = (): Request[] => {
 		["Tom Wilson"]
 	]; // Array of arrays for multiple owners
 	const statuses = ["completed", "in_progress", "failed", "queued"];
-	const approvalStatuses = ["pending", "accepted", "rejected"];
+	const approvalStatuses = ["pending", "accepted", "rejected","HITL Approved"];
 	const plantIds = ["PLT-001", "PLT-002", "PLT-003", "PLT-004"];
 	const partNumbers = ["IPA-SG-99.9", "ACE-EG-99.5", "MET-AL-98.7", "ETH-GL-97.2", "HEX-AN-99.8"];
   
@@ -52,7 +51,7 @@ export const generateMockRequests = (): Request[] => {
     
 		const owner = owners[Math.floor(Math.random() * owners.length)];
 		const status = statuses[Math.floor(Math.random() * statuses.length)];
-		const approvalStatus = owner.length > 0 ? approvalStatuses[Math.floor(Math.random() * 3)] : "pending";
+		const approvalStatus = owner.length > 0 ? approvalStatuses[Math.floor(Math.random() * 3)] : "HITL Approved";
     
 		const children: Request[] = [];
     
@@ -70,7 +69,7 @@ export const generateMockRequests = (): Request[] => {
       
 			children.push({
 				id: `CoA-2024-${String(i).padStart(3, '0')}-${j}`,
-				created_date:childCreatedDate.toISOString(),
+				lot_id: Math.floor(Math.random() * 1000000).toString(),
 				initiator_email: `user${i}@entegris.com`,
 				recipient_email: "qa@entegris.com",
 				document_name: `${docType}-Batch-${batch}.pdf`,
@@ -98,7 +97,7 @@ export const generateMockRequests = (): Request[] => {
 
 		requests.push({
 			id: `REQ-2024-${String(i).padStart(3, '0')}`,
-			created_date:createdDate.toISOString(),
+			lot_id: Math.floor(Math.random() * 1000000).toString(),
 			initiator_email: `user${i}@entegris.com`,
 			recipient_email: "qa@entegris.com",
 			document_name: subjects[Math.floor(Math.random() * subjects.length)],
@@ -109,6 +108,7 @@ export const generateMockRequests = (): Request[] => {
 			created_at: createdDate.toISOString(),
 			updated_at: updatedDate.toISOString(),
 			request_status_logs: [],
+			plant_id: plantIds[Math.floor(Math.random() * plantIds.length)],
 			children: children
 		});
 	}

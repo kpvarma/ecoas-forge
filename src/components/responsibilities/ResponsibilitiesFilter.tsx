@@ -10,36 +10,13 @@ import {
 } from "@/components/ui/select";
 
 // Mock data for dropdowns (these would typically come from an API or context)
-const mockUsers = [
-  { id: "1", name: "John Smith", email: "john.smith@company.com" },
-  { id: "2", name: "Sarah Johnson", email: "sarah.johnson@company.com" },
-  { id: "3", name: "Michael Brown", email: "michael.brown@company.com" },
-  { id: "4", name: "Emily Davis", email: "emily.davis@company.com" },
-  { id: "5", name: "David Wilson", email: "david.wilson@company.com" }
-];
+import { User } from "@/types";
 
-const mockPartNumbers = [
-  { id: "PN001", name: "PN001", description: "Engine Component A" },
-  { id: "PN002", name: "PN002", description: "Brake System B" },
-  { id: "PN003", name: "PN003", description: "Transmission C" },
-  { id: "PN004", name: "PN004", description: "Steering Wheel D" },
-  { id: "PN005", name: "PN005", description: "Suspension E" },
-  { id: "PN006", name: "PN006", description: "Exhaust System F" },
-  { id: "PN007", name: "PN007", description: "Air Filter G" },
-  { id: "PN008", name: "PN008", description: "Oil Filter H" },
-  { id: "PN009", name: "PN009", description: "Battery I" },
-  { id: "PN010", name: "PN010", description: "Alternator J" },
-  { id: "PN011", name: "PN011", description: "Radiator K" },
-  { id: "PN012", name: "PN012", description: "Carburetor L" }
-];
-
-const mockPlantIds = [
-  { id: "P001", name: "P001", description: "Detroit Manufacturing" },
-  { id: "P002", name: "P002", description: "Chicago Assembly" },
-  { id: "P003", name: "P003", description: "Houston Production" },
-  { id: "P004", name: "P004", description: "Phoenix Factory" },
-  { id: "P005", name: "P005", description: "Atlanta Facility" }
-];
+interface DropdownItem {
+  id: string;
+  name: string;
+  description: string;
+}
 
 interface ResponsibilitiesFilterProps {
   searchTerm: string;
@@ -54,10 +31,11 @@ interface ResponsibilitiesFilterProps {
   setSelectedPartNo: (partNo: string) => void;
   selectedPlantId: string;
   setSelectedPlantId: (plantId: string) => void;
-  selectedHitl: string;
-  setSelectedHitl: (hitl: string) => void;
   clearFilters: () => void;
   setCurrentPage: (page: number) => void;
+  users: User[];
+  partNumbers: DropdownItem[];
+  plantIds: DropdownItem[];
   hideControls?: boolean; // New prop to hide controls
 }
 
@@ -74,10 +52,11 @@ export function ResponsibilitiesFilter({
   setSelectedPartNo,
   selectedPlantId,
   setSelectedPlantId,
-  selectedHitl,
-  setSelectedHitl,
   clearFilters,
   setCurrentPage,
+  users,
+  partNumbers,
+  plantIds,
   hideControls = false, // Default to false
 }: ResponsibilitiesFilterProps) {
   if (hideControls) {
@@ -121,7 +100,7 @@ export function ResponsibilitiesFilter({
                   <SelectValue placeholder="Select user" />
                 </SelectTrigger>
                 <SelectContent>
-                  {mockUsers.map((user) => (
+                  {users.map((user) => (
                     <SelectItem key={user.id} value={user.name}>
                       {user.name}
                     </SelectItem>
@@ -150,7 +129,7 @@ export function ResponsibilitiesFilter({
                   <SelectValue placeholder="Select part no" />
                 </SelectTrigger>
                 <SelectContent>
-                  {mockPartNumbers.map((partNo) => (
+                  {partNumbers.map((partNo) => (
                     <SelectItem key={partNo.id} value={partNo.name}>
                       {partNo.name}
                     </SelectItem>
@@ -166,7 +145,7 @@ export function ResponsibilitiesFilter({
                   <SelectValue placeholder="Select plant ID" />
                 </SelectTrigger>
                 <SelectContent>
-                  {mockPlantIds.map((plantId) => (
+                  {plantIds.map((plantId) => (
                     <SelectItem key={plantId.id} value={plantId.name}>
                       {plantId.name}
                     </SelectItem>
@@ -175,18 +154,6 @@ export function ResponsibilitiesFilter({
               </Select>
             </div>
 
-            <div>
-              <label className="text-sm font-medium mb-2 block">HITL Enabled</label>
-              <Select value={selectedHitl} onValueChange={setSelectedHitl}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select HITL" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Yes">Yes</SelectItem>
-                  <SelectItem value="No">No</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
           </div>
 
           <div className="flex justify-end">

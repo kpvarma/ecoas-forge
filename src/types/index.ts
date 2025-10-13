@@ -2,7 +2,7 @@
 
 export interface Request {
   id: string;
-  created_date:string;
+  lot_id?: string;
   initiator_email: string;
   recipient_email: string;
   document_name: string;
@@ -27,6 +27,7 @@ export interface Request {
   children?: Request[];
   plant_id?: string;
   part_number?: string;
+  email?: string;
 }
 
 export interface StatusLog {
@@ -42,15 +43,29 @@ export interface Template {
   template_code?: string; // Added to align with mock data
   xml_file: string;
   created_at: string;
-  updated_at?: string; // Added to align with schema
-  status: 'inactive' | 'active' | 'archived' | 'deleted';
-  plant_id?: string; // Added for template form
-  hintl_enabled?: boolean; // Added for template form
+  updated_at: string; // Made mandatory
+  status: 'inactive' | 'active';
+  plant_id: string;
+  hintl_enabled: boolean; // Made mandatory
   description?: string; // Added for template form
+  owners?: string[];
 }
 
 export type CreateTemplatePayload = Omit<Template, 'id' | 'created_at' | 'updated_at'>;
 export type UpdateTemplatePayload = Partial<Omit<Template, 'id' | 'created_at'>>;
+
+export interface Responsibility {
+  id: string;
+  user: User;
+  part_number: string;
+  plant_id: string;
+  status: 'active' | 'inactive' | 'archived';
+  created_at: string;
+  updated_at: string;
+}
+
+export type CreateResponsibilityPayload = Omit<Responsibility, 'id' | 'created_at' | 'updated_at'>;
+export type UpdateResponsibilityPayload = Partial<Omit<Responsibility, 'id' | 'created_at'>>;
 
 export interface DashboardMetrics {
   totalRequests: number;

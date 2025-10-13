@@ -6,12 +6,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { StatusBadge } from "@/components/StatusBadge";
 import { Request } from "@/types";
 
+import { formatDateOnly } from "@/lib/utils";
+
 interface RelatedDocumentsTableProps {
   children: Request[];
-  formatDate: (dateString: string) => string;
+  formatDateOnly: (dateString: string) => string;
 }
 
-export function RelatedDocumentsTable({ children, formatDate }: RelatedDocumentsTableProps) {
+export function RelatedDocumentsTable({ children, formatDateOnly }: RelatedDocumentsTableProps) {
   return (
     <Card className="enterprise-card">
       <CardHeader className="pb-3">
@@ -24,18 +26,21 @@ export function RelatedDocumentsTable({ children, formatDate }: RelatedDocuments
               <TableRow className="text-xs">
                 <TableHead className="py-2">ID</TableHead>
                 <TableHead className="py-2">Document Name</TableHead>
+                <TableHead className="py-2">Lot ID</TableHead>
+                <TableHead className="py-2">Part Number</TableHead>
+                <TableHead className="py-2">Plant ID</TableHead>
                 <TableHead className="py-2">Status</TableHead>
                 <TableHead className="py-2">Approval</TableHead>
                 <TableHead className="py-2">Owner</TableHead>
-                <TableHead className="py-2">Created</TableHead>
-                <TableHead className="py-2">Actions</TableHead>
+                <TableHead className="py-2">Received On</TableHead>
+
               </TableRow>
             </TableHeader>
             <TableBody>
               {children?.map((child) => (
                 <TableRow key={child.id} className="text-sm">
                   <TableCell className="py-2">
-                    <Link 
+                    <Link
                       to={`/requests/${child.id}/detail2`}
                       target="_blank"
                       className="font-medium text-primary hover:underline"
@@ -44,6 +49,9 @@ export function RelatedDocumentsTable({ children, formatDate }: RelatedDocuments
                     </Link>
                   </TableCell>
                   <TableCell className="py-2">{child.document_name}</TableCell>
+                  <TableCell className="py-2">{child.lot_id}</TableCell>
+                  <TableCell className="py-2">{child.part_number}</TableCell>
+                  <TableCell className="py-2">{child.plant_id}</TableCell>
                   <TableCell className="py-2">
                     <StatusBadge status={child.status} type="status" />
                   </TableCell>
@@ -51,19 +59,8 @@ export function RelatedDocumentsTable({ children, formatDate }: RelatedDocuments
                     <StatusBadge status={child.owner_status} type="approval" />
                   </TableCell>
                   <TableCell className="py-2">{child.owner || ""}</TableCell>
-                  <TableCell className="py-2">{formatDate(child.created_at)}</TableCell>
-                  <TableCell className="py-2">
-                    <div className="flex space-x-1">
-                      <Link to={`/requests/${child.id}/detail2`} target="_blank">
-                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
-                          <Eye className="h-3 w-3" />
-                        </Button>
-                      </Link>
-                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
-                        <Download className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </TableCell>
+                  <TableCell className="py-2">{formatDateOnly(child.created_at)}</TableCell>
+
                 </TableRow>
               ))}
             </TableBody>

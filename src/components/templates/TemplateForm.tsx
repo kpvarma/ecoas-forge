@@ -15,10 +15,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
-import { ExtendedTemplate } from "@/components/templates/TemplatesTable";
+import { Template } from "@/types";
 
 interface TemplateFormProps {
-  initialData?: ExtendedTemplate;
+  initialData?: Template;
   isEditMode?: boolean;
   onSubmit: (data: TemplateFormData) => Promise<void>;
 }

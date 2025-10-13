@@ -7,10 +7,11 @@ import { Request } from "@/types";
 
 interface RequestInfoCardProps {
   request: Request;
-  formatDate: (dateString: string) => string;
+  formatDateOnly: (dateString: string) => string;
+  formatDateTime: (dateString: string) => string;
 }
 
-export function RequestInfoCard({ request, formatDate }: RequestInfoCardProps) {
+export function RequestInfoCard({ request, formatDateOnly, formatDateTime }: RequestInfoCardProps) {
   const [showDetails, setShowDetails] = useState(false);
 
   return (
@@ -18,8 +19,7 @@ export function RequestInfoCard({ request, formatDate }: RequestInfoCardProps) {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="space-y-2">
-            <h1 className="text-2xl font-bold">{request.id}</h1>
-            <p className="text-muted-foreground">{request.document_name}</p>
+            <h1 className="text-2xl font-bold">{request.children[0].id}</h1>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-muted-foreground">STATUS:</span>
@@ -50,13 +50,10 @@ export function RequestInfoCard({ request, formatDate }: RequestInfoCardProps) {
         {showDetails && (
           <div className="grid grid-cols-3 gap-4 text-sm">
             {/* Row 1: Request / Document ID, Subject, Owner */}
+            
             <div>
-              <div className="text-muted-foreground mb-1">Request / Document ID</div>
-              <div className="font-medium">{request.id}</div>
-            </div>
-            <div>
-              <div className="text-muted-foreground mb-1">Subject</div>
-              <div className="font-medium">{request.document_name}</div>
+              <div className="text-muted-foreground mb-1">Document Name</div>
+              <div className="font-medium">{request.children[0].document_name}</div>
             </div>
             <div>
               <div className="text-muted-foreground mb-1">Owner</div>
@@ -89,19 +86,15 @@ export function RequestInfoCard({ request, formatDate }: RequestInfoCardProps) {
               <div className="text-muted-foreground mb-1">Approval Status</div>
               <StatusBadge status={request.owner_status} type="approval" />
             </div>
-            <div>
-              <div className="text-muted-foreground mb-1">Recipient Email</div>
-              <div className="font-medium">{request.recipient_email}</div>
-            </div>
-
+         
             {/* Row 4: Created At, Updated At */}
             <div>
-              <div className="text-muted-foreground mb-1">Created At</div>
-              <div className="font-medium">{formatDate(request.created_at)}</div>
+              <div className="text-muted-foreground mb-1">Received On</div>
+              <div className="font-medium">{formatDateOnly(request.created_at)}</div>
             </div>
             <div>
               <div className="text-muted-foreground mb-1">Updated At</div>
-              <div className="font-medium">{formatDate(request.updated_at)}</div>
+              <div className="font-medium">{formatDateTime(request.updated_at)}</div>
             </div>
           </div>
         )}

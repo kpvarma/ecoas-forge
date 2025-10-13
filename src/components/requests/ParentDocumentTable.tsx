@@ -12,13 +12,15 @@ interface ParentDocumentTableProps {
     status: string;
     approval_status: string;
     owner: string;
+    plant_id: string;
+    email: string;
     created_at: string;
     updated_at: string;
   };
-  formatDate: (dateString: string) => string;
+  formatDateOnly: (dateString: string) => string;
 }
 
-export function ParentDocumentTable({ parentDocument, formatDate }: ParentDocumentTableProps) {
+export function ParentDocumentTable({ parentDocument, formatDateOnly }: ParentDocumentTableProps) {
   return (
     <Card className="enterprise-card">
       <CardHeader className="pb-3">
@@ -30,46 +32,32 @@ export function ParentDocumentTable({ parentDocument, formatDate }: ParentDocume
             <TableHeader>
               <TableRow className="text-xs">
                 <TableHead className="py-2">ID</TableHead>
-                <TableHead className="py-2">Document Name</TableHead>
+                <TableHead className="py-2">Subject</TableHead>
+                <TableHead className="py-2">Plant ID</TableHead>
+                <TableHead className="py-2">Email</TableHead>
                 <TableHead className="py-2">Status</TableHead>
                 <TableHead className="py-2">Approval</TableHead>
-                <TableHead className="py-2">Owner</TableHead>
-                <TableHead className="py-2">Created</TableHead>
-                <TableHead className="py-2">Actions</TableHead>
+                <TableHead className="py-2">Received On</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               <TableRow className="text-sm">
                 <TableCell className="py-2">
-                  <Link 
-                    to={`/requests/${parentDocument.id}/detail2`}
-                    target="_blank"
-                    className="font-medium text-primary hover:underline"
-                  >
+                 
                     {parentDocument.id}
-                  </Link>
+                  
                 </TableCell>
                 <TableCell className="py-2">{parentDocument.document_name}</TableCell>
+                <TableCell className="py-2">{parentDocument.plant_id}</TableCell>
+                <TableCell className="py-2">{parentDocument.email}</TableCell>
                 <TableCell className="py-2">
                   <StatusBadge status={parentDocument.status} type="status" />
                 </TableCell>
                 <TableCell className="py-2">
                   <StatusBadge status={parentDocument.approval_status} type="approval" />
                 </TableCell>
-                <TableCell className="py-2">{parentDocument.owner}</TableCell>
-                <TableCell className="py-2">{formatDate(parentDocument.created_at)}</TableCell>
-                <TableCell className="py-2">
-                  <div className="flex space-x-1">
-                    <Link to={`/requests/${parentDocument.id}/detail2`} target="_blank">
-                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
-                        <Eye className="h-3 w-3" />
-                      </Button>
-                    </Link>
-                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
-                      <Download className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </TableCell>
+                <TableCell className="py-2">{formatDateOnly(parentDocument.created_at)}</TableCell>
+             
               </TableRow>
             </TableBody>
           </Table>

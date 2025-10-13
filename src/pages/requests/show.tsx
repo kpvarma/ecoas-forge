@@ -9,7 +9,7 @@ import { RelatedDocumentsTable } from "@/components/requests/RelatedDocumentsTab
 // Mock data for the specific request
 const mockRequestDetail: Request = {
   id: "REQ-2024-001",
-  created_date: "2024-01-15T10:30:00Z",
+  lot_id: "7",
   initiator_email: "john.doe@entegris.com",
   recipient_email: "qa@entegris.com",
   document_name: "Semiconductor Grade Chemical Analysis Report",
@@ -25,7 +25,7 @@ const mockRequestDetail: Request = {
   children: [
     {
       id: "CoA-2024-001-1",
-      created_date: "2024-01-15T10:31:00Z",
+      lot_id: "1",
       initiator_email: "john.doe@entegris.com",
       recipient_email: "qa@entegris.com",
       document_name: "Chemical Purity Analysis Report.pdf",
@@ -39,7 +39,7 @@ const mockRequestDetail: Request = {
     },
     {
       id: "CoA-2024-001-2",
-      created_date: "2024-01-15T10:32:00Z",
+      lot_id:"2",
       initiator_email: "john.doe@entegris.com",
       recipient_email: "qa@entegris.com",
       document_name: "Trace Metal Analysis Report.pdf",
@@ -53,7 +53,7 @@ const mockRequestDetail: Request = {
     },
     {
       id: "CoA-2024-001-3",
-      created_date: "2024-01-15T10:32:00Z",
+      lot_id:"3",
       initiator_email: "john.doe@entegris.com",
       recipient_email: "qa@entegris.com",
       document_name: "Particle Count Analysis Report.pdf",
@@ -67,7 +67,7 @@ const mockRequestDetail: Request = {
     },
     {
       id: "CoA-2024-001-4",
-      created_date: "2024-01-15T10:33:00Z",
+      lot_id: "5",
       initiator_email: "john.doe@entegris.com",
       recipient_email: "qa@entegris.com",
       document_name: "Moisture Content Analysis Report.pdf",
@@ -81,7 +81,7 @@ const mockRequestDetail: Request = {
     },
     {
       id: "CoA-2024-001-5",
-      created_date: "2024-01-15T10:33:00Z",
+      lot_id: "7",
       initiator_email: "john.doe@entegris.com",
       recipient_email: "qa@entegris.com",
       document_name: "Elemental Composition Report.pdf",
@@ -103,6 +103,8 @@ const parentDocument = {
   status: "completed",
   approval_status: "approved",
   owner: "Jane Smith",
+  plant_id: "P123",
+  email: "jane.smith@example.com",
   created_at: "2024-01-15T10:30:00Z",
   updated_at: "2024-01-15T14:20:00Z"
 };
@@ -145,15 +147,33 @@ const formatDate = (dateString: string) => {
   });
 };
 
+const formatDateOnly = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric"
+  });
+};
+
+const formatDateTime = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+};
+
 export default function RequestDetailPage() {
   const { id } = useParams();
   const request = mockRequestDetail;
   
   return (
     <div className="p-6 space-y-6">
-      <RequestDetailHeader requestId={request.id} />
+      <RequestDetailHeader requestId={request.children[0].id} />
 
-      <RequestInfoCard request={request} formatDate={formatDate} />
+      <RequestInfoCard request={request} formatDateOnly={formatDateOnly} formatDateTime={formatDateTime} />
           
       {/* Horizontal Separator */}
       <div className="my-6">
@@ -162,10 +182,10 @@ export default function RequestDetailPage() {
           
       <DocumentViewers mockDocumentData={mockDocumentData} />
 
-      <ParentDocumentTable parentDocument={parentDocument} formatDate={formatDate} />
+      <ParentDocumentTable parentDocument={parentDocument} formatDateOnly={formatDateOnly} />
 
       {request.children && request.children.length > 0 && (
-        <RelatedDocumentsTable children={request.children} formatDate={formatDate} />
+        <RelatedDocumentsTable children={request.children} formatDateOnly={formatDateOnly} />
       )}
     </div>
   );

@@ -3,8 +3,8 @@ import { ChevronDown, ChevronRight, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { StatusBadge } from "@/components/StatusBadge";
-import { MultipleOwnersDisplay } from "@/components/OwnerBadge";
-import { formatLongDate } from "@/lib/mock/requests";
+import { OwnerBadge, MultipleOwnersDisplay } from "@/components/OwnerBadge";
+import { formatDateTime, formatDateOnly } from "@/lib/utils";
 import { Request } from "@/types";
 
 interface RequestsTableProps {
@@ -36,17 +36,15 @@ export function RequestsTable({
               <tr className="border-b border-border">
                 <th className="w-8 h-8 text-left"></th>
                 <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Request / Document ID</th>
-                <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Created Date</th>
-                <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Plant ID</th>
+                <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Lot Id</th>
                 <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Part Number</th>
-                <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Originator</th>
+                <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Plant ID/Email</th>
                 <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Subject / Document Name</th>
                 <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</th>
                 <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Approval Status</th>
                 <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Owner</th>
-                <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Created At</th>
+                <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Received On</th>
                 <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Updated At</th>
-                <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -69,25 +67,25 @@ export function RequestsTable({
                     )}
                   </td>
                   <td className={`px-2 py-2 ${isChild ? "pl-6" : ""}`}>
-                    <Link
-                      to={`/requests/${item.id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm font-medium text-primary hover:underline"
-                    >
-                      {item.id}
-                    </Link>
+                    {isChild ? (
+                      <span
+                        onClick={() => handleViewDetail2(item.id)}
+                        className="text-sm font-medium text-primary hover:underline cursor-pointer"
+                      >
+                        {item.id}
+                      </span>
+                    ) : (
+                      <span className="text-sm font-medium">{item.id}</span>
+                    )}
                   </td>
                   <td className={`px-2 py-2 ${isChild ? "pl-6" : ""}`}>
-                    {formatLongDate(item.created_date)}
-                  </td>
-                  <td className="px-2 py-2">
                     {isChild ? (
-                      <div className="text-sm font-medium">{item.plant_id}</div>
+                      <div className="text-sm font-medium">{item.lot_id}</div>
                     ) : (
                       <div className="text-sm text-muted-foreground">-</div>
                     )}
                   </td>
+                 
                   <td className="px-2 py-2">
                     {isChild ? (
                       <div className="text-sm font-medium">{item.part_number}</div>
@@ -96,16 +94,18 @@ export function RequestsTable({
                     )}
                   </td>
                   <td className="px-2 py-2">
-                    {!isChild && (
+                    
                       <div>
                         <div className="text-sm font-medium">
-                          {item.initiator_email.split('@')[0].replace('.', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                          {item.plant_id}
                         </div>
+                        {!isChild && (
                         <div className="text-xs text-muted-foreground">
                           {item.initiator_email}
                         </div>
+                         )}
                       </div>
-                    )}
+                   
                   </td>
                   <td className="px-2 py-2">
                     <div className="text-sm font-medium">{item.document_name}</div>
@@ -124,40 +124,12 @@ export function RequestsTable({
                     )}
                   </td>
                   <td className="px-2 py-2 text-xs text-muted-foreground">
-                    {formatLongDate(item.created_at)}
+                    {formatDateOnly(item.created_at)}
                   </td>
                   <td className="px-2 py-2 text-xs text-muted-foreground">
-                    {formatLongDate(item.updated_at)}
+                    {formatDateTime(item.updated_at)}
                   </td>
-                  <td className="px-2 py-2">
-                    <div className="flex space-x-1">
-                      {!isChild ? (
-                        <>
-                         
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 w-6 p-0"
-                            onClick={() => handleViewDetail2(item.id)}
-                          >
-                            <Eye className="h-3 w-3" />
-                          </Button>
-                        </>
-                      ) : (
-                        <>
-                         
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-6 w-6 p-0"
-                            onClick={() => handleViewDetail2(item.id)}
-                          >
-                            <Eye className="h-3 w-3" />
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </td>
+                 
                 </tr>
               ))}
             </tbody>

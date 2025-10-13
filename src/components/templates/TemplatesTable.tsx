@@ -1,9 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from "react"; // Added for re-evaluation
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 import {
-	Search,
-	Filter,
 	Eye,
 	Plus,
 	Download,
@@ -11,28 +9,16 @@ import {
 	CheckCircle,
 	XCircle,
 	AlertTriangle,
-	User,
 	X,
-	ToggleLeft,
-	ToggleRight,
 	Code,
 	Building,
-	Mail,
 	FolderOpen,
 	Edit,
 	Trash2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { useToast } from "@/components/ui/use-toast";
 import {
 	Dialog,
 	DialogContent,
@@ -53,30 +39,18 @@ import {
 	AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from "@/components/ui/popover";
-import { Switch } from "@/components/ui/switch";
-import { MultipleOwnersDisplay } from "@/components/OwnerBadge";
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { Template } from "@/types";
 import { PaginationControls } from "@/components/common/PaginationControls";
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { templatesClient } from "@/lib/clients/templates";
-
-export interface ExtendedTemplate extends Template {
-	owners?: string[];
-	hintl_enabled?: boolean;
-	plant_id?: string;
-}
-
-const mockUsers = {
-	"Jane Smith": { name: "Jane Smith", title: "Senior Quality Analyst", department: "Quality Assurance", email: "jane.smith@entegris.com" },
-	"Mike Johnson": { name: "Mike Johnson", title: "QC Supervisor", department: "Quality Control", email: "mike.johnson@entegris.com" },
-	"Sarah Davis": { name: "Sarah Davis", title: "Lab Manager", department: "Laboratory Services", email: "sarah.davis@entegris.com" },
-	"Tom Wilson": { name: "Tom Wilson", title: "Quality Engineer", department: "Quality Engineering", email: "tom.wilson@entegris.com" }
-};
+import { TemplatesFilter } from "./TemplatesFilter.tsx";
 
 const mockXmlContent = `<?xml version="1.0" encoding="UTF-8"?>
 <Certificate xmlns="http://www.entegris.com/coa" version="2.0">
@@ -106,60 +80,42 @@ const mockXmlContent = `<?xml version="1.0" encoding="UTF-8"?>
 	</TestResults>
 </Certificate>`;
 
-const formatDate = (dateString: string) => { const date = new Date(dateString); return format(date, 'dd MMM yyyy'); };
-
-const StatusBadge = ({ status }: { status: string }) => {
-	const getVariant = () => {
-		switch (status) {
-			case "active": return "default";
-			case "inactive": return "secondary";
-			case "archived": return "outline";
-			case "deleted": return "destructive";
-			default: return "secondary";
-		}
-	};
-	const getIcon = () => {
-		switch (status) {
-			case "active": return <CheckCircle className="h-3 w-3 mr-1" />;
-			case "inactive": return <AlertTriangle className="h-3 w-3 mr-1" />;
-			case "archived": return <Archive className="h-3 w-3 mr-1" />;
-			case "deleted": return <XCircle className="h-3 w-3 mr-1" />;
-			default: return null;
-		}
-	};
-	return (<Badge variant={getVariant()} className="text-xs">{getIcon()}{status.toUpperCase()}</Badge>);
+const formatDate = (dateString: string) => {
+	const date = new Date(dateString);
+	if (isNaN(date.getTime())) {
+		return "Invalid Date"; // Or an empty string, or a default date
+	}
+	return format(date, 'dd MMM yyyy HH:mm');
 };
 
+
 export function TemplatesTable() {
-	const [searchTerm, setSearchTerm] = useState("");
-	const [showFilters, setShowFilters] = useState(false);
-	const [statusFilter, setStatusFilter] = useState<string>("");
-	const [plantIdFilter, setPlantIdFilter] = useState<string>("");
-	const [ownerFilter, setOwnerFilter] = useState<string>("");
+	const { toast } = useToast();
 	const [xmlDialogOpen, setXmlDialogOpen] = useState(false);
-	const [selectedTemplate, setSelectedTemplate] = useState<ExtendedTemplate | null>(null);
-	const [templates, setTemplates] = useState<ExtendedTemplate[]>([]);
+	const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
+	const [templates, setTemplates] = useState<Template[]>([]);
 	const [currentPage, setCurrentPage] = useState(1);
 	const itemsPerPage = 10;
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-	const [templateToDelete, setTemplateToDelete] = useState<ExtendedTemplate | null>(null);
+	const [templateToDelete, setTemplateToDelete] = useState<Template | null>(null);
+
+	const [searchTerm, setSearchTerm] = useState("");
+	const [statusFilter, setStatusFilter] = useState("");
+	const [plantIdFilter, setPlantIdFilter] = useState("");
+	const [ownerFilter, setOwnerFilter] = useState("");
 
 	useEffect(() => {
 		const fetchTemplates = async () => {
 			const fetchedTemplates = await templatesClient.index();
-			setTemplates(fetchedTemplates.map(t => ({ ...t, hintl_enabled: false, plant_id: "N/A", updated_at: t.created_at }))); // Add default values for new fields
+			setTemplates(fetchedTemplates);
 		};
 		fetchTemplates();
 	}, []);
 
-	const uniquePlantIds = Array.from(new Set(templates.map(t => t.plant_id).filter(Boolean) as string[]));
-	const uniqueStatuses = Array.from(new Set(templates.map(t => t.status)));
-	const uniqueOwners = Array.from(new Set(templates.flatMap(t => t.owners || []).filter(Boolean) as string[]));
-
 	const filteredTemplates = templates.filter(template => {
 		const matchesSearch = template.part_no.toLowerCase().includes(searchTerm.toLowerCase()) ||
 			template.xml_file.toLowerCase().includes(searchTerm.toLowerCase()) ||
-			template.plant_id.toLowerCase().includes(searchTerm.toLowerCase());
+			(template.plant_id && template.plant_id.toLowerCase().includes(searchTerm.toLowerCase()));
 
 		const matchesStatus = !statusFilter || template.status === statusFilter;
 		const matchesPlantId = !plantIdFilter || template.plant_id === plantIdFilter;
@@ -174,8 +130,8 @@ export function TemplatesTable() {
 	const endIndex = startIndex + itemsPerPage;
 	const displayedTemplates = filteredTemplates.slice(startIndex, endIndex);
 
-	const handleViewXml = (template: ExtendedTemplate) => { setSelectedTemplate(template); setXmlDialogOpen(true); };
-	const handleDownloadXml = (template: ExtendedTemplate) => {
+	const handleViewXml = (template: Template) => { setSelectedTemplate(template); setXmlDialogOpen(true); };
+	const handleDownloadXml = (template: Template) => {
 		const blob = new Blob([mockXmlContent], { type: 'application/xml' });
 		const url = URL.createObjectURL(blob);
 		const a = document.createElement('a');
@@ -187,11 +143,43 @@ export function TemplatesTable() {
 		URL.revokeObjectURL(url);
 	};
 
-	const toggleHintl = (templateId: string) => {
-		setTemplates(prev => prev.map(template => template.id === templateId ? { ...template, hintl_enabled: !template.hintl_enabled } : template));
+	const toggleHintl = async (templateId: string, currentStatus: boolean) => {
+		try {
+			await templatesClient.update(templateId, { hintl_enabled: !currentStatus });
+			setTemplates(prev => prev.map(template => template.id === templateId ? { ...template, hintl_enabled: !currentStatus } : template));
+			toast({
+				title: "HITL Status Updated",
+				description: `Template HITL status changed to ${!currentStatus ? "enabled" : "disabled"}.`,
+			});
+		} catch (error) {
+			console.error("Failed to toggle HITL status for template:", error);
+			toast({
+				title: "Error",
+				description: "Failed to update HITL status. Please try again.",
+				variant: "destructive",
+			});
+		}
 	};
 
-	const handleDeleteClick = (template: ExtendedTemplate) => {
+	const handleStatusChange = async (templateId: string, newStatus: 'active' | 'inactive') => {
+		try {
+			await templatesClient.update(templateId, { status: newStatus });
+			setTemplates(prev => prev.map(template => template.id === templateId ? { ...template, status: newStatus } : template));
+			toast({
+				title: "Template Status Updated",
+				description: `Template status changed to ${newStatus}.`,
+			});
+		} catch (error) {
+			console.error("Failed to update template status:", error);
+			toast({
+				title: "Error",
+				description: "Failed to update template status. Please try again.",
+				variant: "destructive",
+			});
+		}
+	};
+
+	const handleDeleteClick = (template: Template) => {
 		setTemplateToDelete(template);
 		setDeleteDialogOpen(true);
 	};
@@ -206,79 +194,18 @@ export function TemplatesTable() {
 
 	return (
 		<>
-			<div className="space-y-2 mb-4">
-				<div className="flex items-center" >
-					<div className="flex-1">
-						<div className="relative">
-							<Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-							<Input
-								placeholder="Search templates by part number, filename, or plant ID..."
-								value={searchTerm}
-								onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-								className="pl-10 py-2 w-full"
-							/>
-						</div>
-					</div>
-					<div className="ml-3">
-						<Button variant="outline" className="h-10" onClick={() => setShowFilters(!showFilters)}>
-							<Filter className="h-4 w-4 mr-2" />
-							Filters
-						</Button>
-					</div>
-				</div>
-
-				{showFilters && (
-					<div className="p-3 border border-border rounded-lg bg-muted/30"  >
-						<div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-							<div>
-								<label className="text-sm font-medium block mb-1">Status</label>
-								<Select value={statusFilter} onValueChange={(value) => { setStatusFilter(value === "all" ? "" : value); setCurrentPage(1); }}>
-									<SelectTrigger>
-										<SelectValue placeholder="All Status" />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="all">All Status</SelectItem>
-										{uniqueStatuses.map((status) => (<SelectItem key={status} value={status}>{status.charAt(0).toUpperCase() + status.slice(1)}</SelectItem>))}
-									</SelectContent>
-								</Select>
-							</div>
-
-							<div>
-								<label className="text-sm font-medium block mb-1">Plant ID</label>
-								<Select value={plantIdFilter} onValueChange={(value) => { setPlantIdFilter(value === "all" ? "" : value); setCurrentPage(1); }}>
-									<SelectTrigger>
-										<SelectValue placeholder="All Plant IDs" />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="all">All Plant IDs</SelectItem>
-										{uniquePlantIds.map((id) => (<SelectItem key={id} value={id}>{id}</SelectItem>))}
-									</SelectContent>
-								</Select>
-							</div>
-
-							<div>
-								<label className="text-sm font-medium block mb-1">Owner</label>
-								<Select value={ownerFilter} onValueChange={(value) => { setOwnerFilter(value === "all" ? "" : value); setCurrentPage(1); }}>
-									<SelectTrigger>
-										<SelectValue placeholder="All Owners" />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="all">All Owners</SelectItem>
-										<SelectItem value="unassigned">Unassigned</SelectItem>
-										{uniqueOwners.map((owner) => (<SelectItem key={owner} value={owner}>{owner}</SelectItem>))}
-									</SelectContent>
-								</Select>
-							</div>
-						</div>
-
-						<div className="flex justify-end mt-2">
-							<Button variant="outline" size="sm" onClick={() => { setStatusFilter(""); setPlantIdFilter(""); setOwnerFilter(""); setCurrentPage(1); }}>
-								Clear
-							</Button>
-						</div>
-					</div>
-				)}
-			</div>
+			<TemplatesFilter
+				templates={templates}
+				searchTerm={searchTerm}
+				setSearchTerm={setSearchTerm}
+				statusFilter={statusFilter}
+				setStatusFilter={setStatusFilter}
+				plantIdFilter={plantIdFilter}
+				setPlantIdFilter={setPlantIdFilter}
+				ownerFilter={ownerFilter}
+				setOwnerFilter={setOwnerFilter}
+				setCurrentPage={setCurrentPage}
+			/>
 
 			<div className="rounded-md border">
 				<table className="w-full">
@@ -286,7 +213,9 @@ export function TemplatesTable() {
 						<tr className="border-b border-border">
 							<th className="px-3 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Template</th>
 							<th className="px-3 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Part ID</th>
+							<th className="px-3 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Plant ID</th>
 							<th className="px-3 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</th>
+							<th className="px-3 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">HITL</th>
 							<th className="px-3 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Updated At</th>
 							<th className="px-3 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Actions</th>
 						</tr>
@@ -294,7 +223,7 @@ export function TemplatesTable() {
 					<tbody className="divide-y divide-border">
 						{displayedTemplates.length === 0 ? (
 							<tr>
-								<td colSpan={6} className="px-3 py-3 text-center text-muted-foreground">No templates found</td>
+								<td colSpan={7} className="px-3 py-3 text-center text-muted-foreground">No templates found</td>
 							</tr>
 						) : (
 							displayedTemplates.map((template) => (
@@ -310,7 +239,24 @@ export function TemplatesTable() {
 										</div>
 									</td>
 									<td className="px-3 py-3"><div className="flex items-center text-sm"><Building className="h-3 w-3 mr-2 text-muted-foreground" />{template.part_no}</div></td>
-									<td className="px-3 py-3"><StatusBadge status={template.status} /></td>
+									<td className="px-3 py-3"><div className="flex items-center text-sm">{template.plant_id}</div></td>
+									<td className="px-3 py-3">
+										<Select value={template.status} onValueChange={(value: 'active' | 'inactive') => handleStatusChange(template.id, value)}>
+											<SelectTrigger className="w-[120px]">
+												<SelectValue placeholder="Status" />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectItem value="active">Active</SelectItem>
+												<SelectItem value="inactive">Inactive</SelectItem>
+											</SelectContent>
+										</Select>
+									</td>
+									<td className="px-3 py-3">
+										<Switch
+											checked={template.hintl_enabled}
+											onCheckedChange={() => toggleHintl(template.id, template.hintl_enabled)}
+										/>
+									</td>
 									<td className="px-3 py-3"><div className="flex items-center text-xs text-muted-foreground">{formatDate(template.updated_at)}</div></td>
 									<td className="px-3 py-3">
 										<div className="flex items-center space-x-1">
@@ -345,7 +291,7 @@ export function TemplatesTable() {
 			<Dialog open={xmlDialogOpen} onOpenChange={setXmlDialogOpen}>
 				<DialogContent className="max-w-4xl h-[80vh]">
 					<DialogHeader>
-						<DialogTitle className="flex items-center"><Code className="h-5 w-5 mr-2 text-primary" />XML Template: {selectedTemplate?.xml_file}</DialogTitle>
+						{/* <DialogTitle className="flex items-center"><Code className="h-5 w-5 mr-2 text-primary" />XML Template: {selectedTemplate?.xml_file}</DialogTitle> */}
 						<DialogDescription>Part Number: {selectedTemplate?.part_no}</DialogDescription>
 					</DialogHeader>
 					<div className="flex-1 overflow-hidden"><div className="h-full overflow-auto"><SyntaxHighlighter language="xml" style={tomorrow} className="!bg-muted/30 !m-0 h-full text-sm rounded-lg" customStyle={{ margin: 0, padding: '1rem', background: 'hsl(var(--muted) / 0.3)', height: '100%', overflow: 'auto', borderRadius: '0.5rem' }}>{mockXmlContent}</SyntaxHighlighter></div></div>

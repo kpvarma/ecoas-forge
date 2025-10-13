@@ -8,20 +8,21 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ResponsibilitiesForm } from "./ResponsibilitiesForm.tsx";
+import { Responsibility } from "@/types";
 
 interface ResponsibilitiesHeaderProps {
   isFormOpen: boolean;
   setIsFormOpen: (isOpen: boolean) => void;
-  editingRole: any; // Replace 'any' with actual type when available
-  setEditingRole: (role: any) => void; // Replace 'any' with actual type when available
+  editingResponsibility: Responsibility | null;
+  setEditingResponsibility: (responsibility: Responsibility | null) => void;
   hideControls?: boolean; // New prop to hide controls
 }
 
 export function ResponsibilitiesHeader({
   isFormOpen,
   setIsFormOpen,
-  editingRole,
-  setEditingRole,
+  editingResponsibility,
+  setEditingResponsibility,
   hideControls = false, // Default to false
 }: ResponsibilitiesHeaderProps) {
   if (hideControls) {
@@ -41,21 +42,21 @@ export function ResponsibilitiesHeader({
       </div>
       <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
         <DialogTrigger asChild>
-          <Button onClick={() => setEditingRole(null)}>
+          <Button onClick={() => setEditingResponsibility(null)}>
             <Plus className="h-4 w-4 mr-2" />
             Add
           </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>{editingRole ? "Edit Role" : "Add New Role"}</DialogTitle>
+            <DialogTitle>{editingResponsibility ? "Edit Responsibility" : "Add New Responsibility"}</DialogTitle>
           </DialogHeader>
           <ResponsibilitiesForm
-            role={editingRole}
+            responsibility={editingResponsibility}
             onClose={() => setIsFormOpen(false)}
             onSave={() => {
               setIsFormOpen(false);
-              setEditingRole(null);
+              setEditingResponsibility(null);
             }}
           />
         </DialogContent>

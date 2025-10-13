@@ -53,7 +53,7 @@ export default function UsersTable({ users, itemsPerPage = 10, onSelectUser }: {
   const endIndex = startIndex + itemsPerPage;
   const currentUsers = filteredUsers.slice(startIndex, endIndex);
 
-  const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+  const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "numeric", second: "numeric" });
 
   return (
     <>

@@ -200,16 +200,7 @@ export function UserDetail() {
                           <Edit className="h-4 w-4" />
                         </Button>
                       </Link>
-                      <ConfirmationDialog
-                        title="Delete Role"
-                        description={`Are you sure you want to delete role ${role.id}? This action cannot be undone.`}
-                        onConfirm={() => handleDeleteRole(role.id)}
-                        triggerButton={
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="Delete role">
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        }
-                      />
+                      
                     </div>
                   </TableCell>
                 </TableRow>

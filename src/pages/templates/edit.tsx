@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
-import { ExtendedTemplate } from "@/components/templates/TemplatesTable";
+import { Template } from "@/types";
 import { mockTemplates } from "@/lib/mock/templates";
 import { TemplateForm } from "@/components/templates/TemplateForm";
 
@@ -10,7 +10,7 @@ export function UpdateTemplate() {
     const { id } = useParams<{ id: string }>();
     const isEditMode = !!id;
 
-    const currentTemplate = isEditMode ? mockTemplates.find(t => t.id === id) as ExtendedTemplate : undefined;
+    const currentTemplate = isEditMode ? mockTemplates.find(t => t.id === id) as Template : undefined;
 
     const handleSubmit = async (formData: any) => {
         // Simulate API call

@@ -4,40 +4,97 @@ import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import StatusCard from "@/components/dashboard/StatusCard";
 import BreakdownCard from "@/components/dashboard/BreakdownCard";
 import RecentActivity from "@/components/dashboard/RecentActivity";
+import { DashboardFilter } from "@/components/dashboard/DashboardFilter";
+
+interface DashboardFilters {
+ partId?: string;
+ plantId?: string;
+ owner?: string;
+ approvalStatus?: string;
+ receivedOnFrom?: string;
+ receivedOnTo?: string;
+}
 
 export function Dashboard() {
+ const [filters, setFilters] = React.useState<DashboardFilters>({});
+
+ const handleFilterChange = (newFilters: DashboardFilters) => {
+   setFilters(newFilters);
+   console.log("Applied Filters:", newFilters);
+   // Here you would typically fetch new data based on the filters
+ };
+
 	// Mock data - keep this local for now, can be pulled into a hook later
-	const dashboardMetrics = {
-		totalRequests: 1247,
-		totalDocuments: 3421,
-		unassigned: 156,
-		totalRejections: 23,
-		totalApprovals: 789,
-		requestStatusCounts: {
-			queued: 145,
-			in_progress: 234,
-			failed: 35,
-			completed: 833,
-		},
-		documentStatusCounts: {
-			queued: 245,
-			in_progress: 456,
-			failed: 67,
-			completed: 2653,
-		},
-		approvalStatusCounts: {
-			pending: 234,
-			accepted: 789,
-			rejected: 23,
-		},
-		ownerBreakdown: {
-			"Jane Smith": 189,
-			"Mike Johnson": 156,
-			"Sarah Davis": 203,
-			"Tom Wilson": 178,
-			Unassigned: 156,
-		},
-	};
+	 const baseDashboardMetrics = {
+	   totalRequests: 1247,
+	   totalDocuments: 3421,
+	   unassigned: 156,
+	   totalRejections: 23,
+	   totalApprovals: 789,
+	   requestStatusCounts: {
+	     queued: 145,
+	     in_progress: 234,
+	     failed: 35,
+	     completed: 833,
+	   },
+	   documentStatusCounts: {
+	     queued: 245,
+	     in_progress: 456,
+	     failed: 67,
+	     completed: 2653,
+	   },
+	   approvalStatusCounts: {
+	     pending: 234,
+	     accepted: 789,
+	     rejected: 23,
+	   },
+	   ownerBreakdown: {
+	     "Jane Smith": 189,
+	     "Mike Johnson": 156,
+	     "Sarah Davis": 203,
+	     "Tom Wilson": 178,
+	     Unassigned: 156,
+	   },
+	 };
+
+	 const dashboardMetrics = React.useMemo(() => {
+	   let filteredMetrics = { ...baseDashboardMetrics };
+
+	   if (filters.approvalStatus) {
+	     const status = filters.approvalStatus as keyof typeof baseDashboardMetrics.approvalStatusCounts;
+	     filteredMetrics.approvalStatusCounts = {
+	       pending: 0,
+	       accepted: 0,
+	       rejected: 0,
+	       [status]: baseDashboardMetrics.approvalStatusCounts[status],
+	     };
+	     filteredMetrics.totalApprovals = status === 'accepted' ? baseDashboardMetrics.approvalStatusCounts.accepted : 0;
+	     filteredMetrics.totalRejections = status === 'rejected' ? baseDashboardMetrics.approvalStatusCounts.rejected : 0;
+	   } else {
+	     filteredMetrics.totalApprovals = baseDashboardMetrics.totalApprovals;
+	     filteredMetrics.totalRejections = baseDashboardMetrics.totalRejections;
+	   }
+
+	   if (filters.owner) {
+	     const owner = filters.owner as keyof typeof baseDashboardMetrics.ownerBreakdown;
+	     filteredMetrics.ownerBreakdown = {
+	       "Jane Smith": 0,
+	       "Mike Johnson": 0,
+	       "Sarah Davis": 0,
+	       "Tom Wilson": 0,
+	       Unassigned: 0,
+	       [owner]: baseDashboardMetrics.ownerBreakdown[owner],
+	     };
+	     filteredMetrics.unassigned = owner === 'Unassigned' ? baseDashboardMetrics.ownerBreakdown.Unassigned : 0;
+	   } else {
+	     filteredMetrics.unassigned = baseDashboardMetrics.unassigned;
+	   }
+
+	   // For PartId, PlantId, and Date Range, we'd need more granular mock data
+	   // to effectively filter. For now, these filters will just be logged.
+
+	   return filteredMetrics;
+	 }, [filters]);
 
 	const requestItems = Object.entries(dashboardMetrics.requestStatusCounts).map(([k, v]) => ({
 		key: k,
@@ -78,6 +135,7 @@ export function Dashboard() {
 	return (
 		<div className="p-6 space-y-6">
 			<DashboardHeader />
+			   <DashboardFilter onFilterChange={handleFilterChange} />
 
 			{/* Overview Metrics */}
 			<div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">

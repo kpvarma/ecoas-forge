@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Search, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,57 +10,69 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Template } from "@/types";
 
-interface RequestsFilterProps {
+export interface TemplatesFilterProps {
+  templates: Template[];
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   statusFilter: string;
   setStatusFilter: (status: string) => void;
-  approvalStatusFilter: string;
-  setApprovalStatusFilter: (status: string) => void;
-  ownerFilter: string;
-  setOwnerFilter: (owner: string) => void;
   plantIdFilter: string;
   setPlantIdFilter: (plantId: string) => void;
-  partNumberFilter: string;
-  setPartNumberFilter: (partNumber: string) => void;
-  showFilters: boolean;
-  setShowFilters: (show: boolean) => void;
-  hideControls?: boolean; // New prop to hide controls
+  ownerFilter: string;
+  setOwnerFilter: (owner: string) => void;
+  setCurrentPage: (page: number) => void;
 }
 
-export function RequestsFilter({
+export const TemplatesFilter = ({
+  templates,
   searchTerm,
   setSearchTerm,
   statusFilter,
   setStatusFilter,
-  approvalStatusFilter,
-  setApprovalStatusFilter,
-  ownerFilter,
-  setOwnerFilter,
   plantIdFilter,
   setPlantIdFilter,
-  partNumberFilter,
-  setPartNumberFilter,
-  showFilters,
-  setShowFilters,
-  hideControls = false, // Default to false
-}: RequestsFilterProps) {
-  if (hideControls) {
-    return null; // Render nothing if hideControls is true
-  }
+  ownerFilter,
+  setOwnerFilter,
+  setCurrentPage,
+}: TemplatesFilterProps) => {
+  const [showFilters, setShowFilters] = useState(false);
+
+  const uniquePlantIds = Array.from(new Set(templates.map(t => t.plant_id))).filter(Boolean);
+  const uniqueOwners = Array.from(new Set(templates.flatMap(t => t.owners || []))).filter(Boolean);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const handleStatusChange = (value: string) => {
+    setStatusFilter(value === "all" ? "" : value);
+    setCurrentPage(1);
+  };
+
+  const handlePlantIdChange = (value: string) => {
+    setPlantIdFilter(value === "all" ? "" : value);
+    setCurrentPage(1);
+  };
+
+  const handleOwnerChange = (value: string) => {
+    setOwnerFilter(value === "all" ? "" : value);
+    setCurrentPage(1);
+  };
 
   return (
-    <Card className="enterprise-card">
+    <Card className="enterprise-card mb-4">
       <CardContent className="p-4">
         <div className="flex items-center justify-between space-x-4">
           <div className="flex-1">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search requests..."
+                placeholder="Search templates..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={handleSearchChange}
                 className="pl-10"
               />
             </div>
@@ -78,62 +91,42 @@ export function RequestsFilter({
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
                 <label className="text-sm font-medium block mb-2">Status</label>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <Select value={statusFilter} onValueChange={handleStatusChange}>
                   <SelectTrigger>
                     <SelectValue placeholder="All" />
                   </SelectTrigger>
                   <SelectContent className="bg-background border border-border">
                     <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="queued">Queued</SelectItem>
-                    <SelectItem value="in_progress">In Progress</SelectItem>
-                    <SelectItem value="failed">Failed</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div>
                 <label className="text-sm font-medium block mb-2">Plant ID</label>
-                <Select value={plantIdFilter} onValueChange={setPlantIdFilter}>
+                <Select value={plantIdFilter} onValueChange={handlePlantIdChange}>
                   <SelectTrigger>
                     <SelectValue placeholder="All" />
                   </SelectTrigger>
                   <SelectContent className="bg-background border border-border">
                     <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="PLT-001">PLT-001</SelectItem>
-                    <SelectItem value="PLT-002">PLT-002</SelectItem>
-                    <SelectItem value="PLT-003">PLT-003</SelectItem>
-                    <SelectItem value="PLT-004">PLT-004</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="text-sm font-medium block mb-2">Part Number</label>
-                <Select value={partNumberFilter} onValueChange={setPartNumberFilter}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="All" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-background border border-border">
-                    <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="IPA-SG-99.9">IPA-SG-99.9</SelectItem>
-                    <SelectItem value="ACE-EG-99.5">ACE-EG-99.5</SelectItem>
-                    <SelectItem value="MET-AL-98.7">MET-AL-98.7</SelectItem>
-                    <SelectItem value="ETH-GL-97.2">ETH-GL-97.2</SelectItem>
-                    <SelectItem value="HEX-AN-99.8">HEX-AN-99.8</SelectItem>
+                    {uniquePlantIds.map(id => (
+                      <SelectItem key={id} value={id}>{id}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               <div>
                 <label className="text-sm font-medium block mb-2">Owner</label>
-                <Select value={ownerFilter} onValueChange={setOwnerFilter}>
+                <Select value={ownerFilter} onValueChange={handleOwnerChange}>
                   <SelectTrigger>
                     <SelectValue placeholder="All" />
                   </SelectTrigger>
                   <SelectContent className="bg-background border border-border">
                     <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="jane-smith">Jane Smith</SelectItem>
-                    <SelectItem value="mike-johnson">Mike Johnson</SelectItem>
-                    <SelectItem value="sarah-davis">Sarah Davis</SelectItem>
-                    <SelectItem value="tom-wilson">Tom Wilson</SelectItem>
+                    {uniqueOwners.map(owner => (
+                      <SelectItem key={owner} value={owner}>{owner}</SelectItem>
+                    ))}
                     <SelectItem value="unassigned">Unassigned</SelectItem>
                   </SelectContent>
                 </Select>
