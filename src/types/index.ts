@@ -2,12 +2,14 @@
 
 export interface Request {
   id: string;
+  message_id?: string; // Added message_id
   lot_id?: string;
   initiator_email: string;
   recipient_email: string;
   document_name: string;
   pdf_file?: string;
   xml_file?: string;
+  supplier_information?: string;
   request_status: 'queued' | 'parsed' | 'parsing_failed' | 'error' | 'abandoned' | 'template_generated' | 'template_generation_failed';
   owner?: string;
   owner_status: 'unassigned' | 'assigned' | 'approved' | 'retried' | 'rejected';
@@ -38,21 +40,21 @@ export interface StatusLog {
 }
 
 export interface Template {
-  id: string;
-  part_no: string;
-  template_code?: string; // Added to align with mock data
-  xml_file: string;
+  id: number; // Changed from string to number
+  part_id: number; // Changed from part_no: string to part_id: number
+  template_code?: string; // Kept as optional, not in API response
+  xml_file_path: string; // Changed from xml_file to xml_file_path
   created_at: string;
-  updated_at: string; // Made mandatory
+  updated_at: string;
   status: 'inactive' | 'active';
-  plant_id: string;
-  hintl_enabled: boolean; // Made mandatory
-  description?: string; // Added for template form
-  owners?: string[];
+  plant_id?: string; // Kept as optional, not in API response
+  hintl_enabled: boolean;
+  description?: string; // Kept as optional, not in API response
+  owners?: string[]; // Kept as optional, not in API response
 }
 
-export type CreateTemplatePayload = Omit<Template, 'id' | 'created_at' | 'updated_at'>;
-export type UpdateTemplatePayload = Partial<Omit<Template, 'id' | 'created_at'>>;
+export type CreateTemplatePayload = Omit<Template, 'id' | 'created_at' | 'updated_at' | 'template_code' | 'plant_id' | 'description' | 'owners'>;
+export type UpdateTemplatePayload = Partial<Omit<Template, 'id' | 'created_at' | 'template_code' | 'plant_id' | 'description' | 'owners'>>;
 
 export interface Responsibility {
   id: string;

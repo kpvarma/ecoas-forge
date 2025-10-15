@@ -2,10 +2,10 @@ import { Template } from '../../types';
 
 export let mockTemplates: Template[] = [
   {
-    id: '1',
+    id: 1,
     template_code: 'TMPL-IPA-001',
-    part_no: 'ONBOARDING-001',
-    xml_file: '<template><name>Onboarding Template</name><description>Standard template for new employee onboarding process.</description></template>',
+    part_id: 1,
+    xml_file_path: '<template><name>Onboarding Template</name><description>Standard template for new employee onboarding process.</description></template>',
     created_at: '2023-01-15T10:00:00Z',
     updated_at: '2023-01-15T10:00:00Z',
     status: 'active',
@@ -13,10 +13,10 @@ export let mockTemplates: Template[] = [
     hintl_enabled: false,
   },
   {
-    id: '2',
+    id: 2,
     template_code: 'TMPL-ACE-001',
-    part_no: 'OFFBOARDING-001',
-    xml_file: '<template><name>Offboarding Template</name><description>Template for employee offboarding procedures.</description></template>',
+    part_id: 2,
+    xml_file_path: '<template><name>Offboarding Template</name><description>Template for employee offboarding procedures.</description></template>',
     created_at: '2023-02-20T11:30:00Z',
     updated_at: '2023-02-20T11:30:00Z',
     status: 'active',
@@ -24,10 +24,10 @@ export let mockTemplates: Template[] = [
     hintl_enabled: true,
   },
   {
-    id: '3',
+    id: 3,
     template_code: 'TMPL-MET-001',
-    part_no: 'PROJECT-KICKOFF-001',
-    xml_file: '<template><name>Project Kickoff Template</name><description>Template for initiating new projects.</description></template>',
+    part_id: 3,
+    xml_file_path: '<template><name>Project Kickoff Template</name><description>Template for initiating new projects.</description></template>',
     created_at: '2023-03-10T09:00:00Z',
     updated_at: '2023-03-10T09:00:00Z',
     status: 'inactive',
@@ -35,33 +35,32 @@ export let mockTemplates: Template[] = [
     hintl_enabled: false,
   },
   {
-    id: '4',
+    id: 4,
     template_code: 'TMPL-ETH-001',
-    part_no: 'PERF-REVIEW-001',
-    xml_file: '<template><name>Performance Review Template</name><description>Annual performance review template.</description></template>',
+    part_id: 4,
+    xml_file_path: '<template><name>Performance Review Template</name><description>Annual performance review template.</description></template>',
     created_at: '2023-04-01T14:00:00Z',
     updated_at: '2023-04-01T14:00:00Z',
-    status: 'archived',
+    status: 'inactive',
     plant_id: 'P003',
     hintl_enabled: true,
   },
 ];
 
-export const addMockTemplate = (template: Omit<Template, 'id' | 'created_at' | 'updated_at'>): Template => {
+export const addMockTemplate = (template: Omit<Template, 'id' | 'created_at' | 'updated_at' | 'template_code' | 'plant_id' | 'description' | 'owners'>): Template => {
   const newTemplate: Template = {
     ...template,
-    id: String(mockTemplates.length + 1),
+    id: mockTemplates.length + 1,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
     status: template.status || 'active',
-    plant_id: template.plant_id || 'P999', // Default plant_id if not provided
-    hintl_enabled: template.hintl_enabled || false, // Default hintl_enabled if not provided
+    hintl_enabled: template.hintl_enabled || false,
   };
   mockTemplates.push(newTemplate);
   return newTemplate;
 };
 
-export const updateMockTemplate = (id: string, updates: Partial<Omit<Template, 'id' | 'created_at'>>): Template | undefined => {
+export const updateMockTemplate = (id: number, updates: Partial<Omit<Template, 'id' | 'created_at' | 'template_code' | 'plant_id' | 'description' | 'owners'>>): Template | undefined => {
   const index = mockTemplates.findIndex(template => template.id === id);
   if (index > -1) {
     const updatedTemplate = { ...mockTemplates[index], ...updates, updated_at: new Date().toISOString() };

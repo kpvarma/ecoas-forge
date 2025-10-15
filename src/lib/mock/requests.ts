@@ -19,7 +19,7 @@ export const generateMockRequests = (): Request[] => {
 		["Tom Wilson"]
 	]; // Array of arrays for multiple owners
 	const statuses = ["completed", "in_progress", "failed", "queued"];
-	const approvalStatuses = ["pending", "accepted", "rejected","HITL Approved"];
+	const approvalStatuses = ["pending", "approved", "rejected","HITL Approved"];
 	const plantIds = ["PLT-001", "PLT-002", "PLT-003", "PLT-004"];
 	const partNumbers = ["IPA-SG-99.9", "ACE-EG-99.5", "MET-AL-98.7", "ETH-GL-97.2", "HEX-AN-99.8"];
   
@@ -69,6 +69,7 @@ export const generateMockRequests = (): Request[] => {
       
 			children.push({
 				id: `CoA-2024-${String(i).padStart(3, '0')}-${j}`,
+				message_id: `MSG-${Math.random().toString(36).substr(2, 9).toUpperCase()}`, // Added message_id
 				lot_id: Math.floor(Math.random() * 1000000).toString(),
 				initiator_email: `user${i}@entegris.com`,
 				recipient_email: "qa@entegris.com",
@@ -82,7 +83,8 @@ export const generateMockRequests = (): Request[] => {
 				request_status_logs: [],
 				parent_id: `REQ-2024-${String(i).padStart(3, '0')}`,
 				plant_id: plantIds[Math.floor(Math.random() * plantIds.length)],
-				part_number: partNumbers[Math.floor(Math.random() * partNumbers.length)]
+				part_number: partNumbers[Math.floor(Math.random() * partNumbers.length)],
+				supplier_information: `Supplier ${j} (Contact ${j}, supplier${j}@example.com)` // Added supplier_information as string
 			});
 		}
     
@@ -97,6 +99,7 @@ export const generateMockRequests = (): Request[] => {
 
 		requests.push({
 			id: `REQ-2024-${String(i).padStart(3, '0')}`,
+			message_id: `MSG-${Math.random().toString(36).substr(2, 9).toUpperCase()}`, // Added message_id
 			lot_id: Math.floor(Math.random() * 1000000).toString(),
 			initiator_email: `user${i}@entegris.com`,
 			recipient_email: "qa@entegris.com",
@@ -109,7 +112,8 @@ export const generateMockRequests = (): Request[] => {
 			updated_at: updatedDate.toISOString(),
 			request_status_logs: [],
 			plant_id: plantIds[Math.floor(Math.random() * plantIds.length)],
-			children: children
+			children: children,
+			supplier_information: `Supplier ${i} (Contact ${i}, supplier${i}@example.com)` // Added supplier_information as string
 		});
 	}
   
