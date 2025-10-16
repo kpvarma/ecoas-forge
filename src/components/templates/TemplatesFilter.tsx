@@ -18,8 +18,6 @@ export interface TemplatesFilterProps {
   setSearchTerm: (term: string) => void;
   statusFilter: string;
   setStatusFilter: (status: string) => void;
-  plantIdFilter: string;
-  setPlantIdFilter: (plantId: string) => void;
   ownerFilter: string;
   setOwnerFilter: (owner: string) => void;
   setCurrentPage: (page: number) => void;
@@ -31,15 +29,12 @@ export const TemplatesFilter = ({
   setSearchTerm,
   statusFilter,
   setStatusFilter,
-  plantIdFilter,
-  setPlantIdFilter,
   ownerFilter,
   setOwnerFilter,
   setCurrentPage,
 }: TemplatesFilterProps) => {
   const [showFilters, setShowFilters] = useState(false);
 
-  const uniquePlantIds = Array.from(new Set(templates.map(t => t.plant_id))).filter(Boolean);
   const uniqueOwners = Array.from(new Set(templates.flatMap(t => t.owners || []))).filter(Boolean);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -52,10 +47,6 @@ export const TemplatesFilter = ({
     setCurrentPage(1);
   };
 
-  const handlePlantIdChange = (value: string) => {
-    setPlantIdFilter(value === "all" ? "" : value);
-    setCurrentPage(1);
-  };
 
   const handleOwnerChange = (value: string) => {
     setOwnerFilter(value === "all" ? "" : value);
@@ -99,20 +90,7 @@ export const TemplatesFilter = ({
                     <SelectItem value="all">All</SelectItem>
                     <SelectItem value="active">Active</SelectItem>
                     <SelectItem value="inactive">Inactive</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="text-sm font-medium block mb-2">Plant ID</label>
-                <Select value={plantIdFilter} onValueChange={handlePlantIdChange}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="All" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-background border border-border">
-                    <SelectItem value="all">All</SelectItem>
-                    {uniquePlantIds.map(id => (
-                      <SelectItem key={id} value={id}>{id}</SelectItem>
-                    ))}
+                    <SelectItem value="archived">Archived</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

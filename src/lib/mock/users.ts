@@ -4,7 +4,7 @@ export const mockUsers = [
     name: "John Smith",
     email: "john.smith@entegris.com",
     title: "Senior Engineer",
-    role: "ADMIN",
+    role: "Superuser",
     department: "Engineering",
     last_login: "2024-01-15T10:30:00Z",
     status: "active"
@@ -14,7 +14,7 @@ export const mockUsers = [
     name: "Sarah Johnson",
     email: "sarah.johnson@entegris.com",
     title: "Product Manager",
-    role: "USER",
+    role: "User",
     department: "Product",
     last_login: "2024-01-14T15:45:00Z",
     status: "active"
@@ -24,7 +24,7 @@ export const mockUsers = [
     name: "Mike Chen",
     email: "mike.chen@entegris.com",
     title: "Quality Analyst",
-    role: "USER",
+    role: "User",
     department: "Quality Assurance",
     last_login: "2024-01-13T09:15:00Z",
     status: "active"
@@ -34,7 +34,7 @@ export const mockUsers = [
     name: "Emily Davis",
     email: "emily.davis@entegris.com",
     title: "Operations Lead",
-    role: "ADMIN",
+    role: "Template Admin",
     department: "Operations",
     last_login: "2024-01-12T14:20:00Z",
     status: "inactive"
@@ -44,7 +44,7 @@ export const mockUsers = [
     name: "Robert Wilson",
     email: "robert.wilson@entegris.com",
     title: "Research Scientist",
-    role: "USER",
+    role: "User",
     department: "R&D",
     last_login: "2024-01-11T11:10:00Z",
     status: "active"
@@ -54,7 +54,7 @@ export const mockUsers = [
     name: "Lisa Anderson",
     email: "lisa.anderson@entegris.com",
     title: "Manufacturing Engineer",
-    role: "USER",
+    role: "User",
     department: "Manufacturing",
     last_login: "2024-01-10T16:30:00Z",
     status: "active"
@@ -64,7 +64,7 @@ export const mockUsers = [
     name: "David Brown",
     email: "david.brown@entegris.com",
     title: "Supply Chain Manager",
-    role: "ADMIN",
+    role: "Superuser",
     department: "Supply Chain",
     last_login: "2024-01-09T08:45:00Z",
     status: "active"
@@ -74,7 +74,7 @@ export const mockUsers = [
     name: "Jennifer Taylor",
     email: "jennifer.taylor@entegris.com",
     title: "Compliance Officer",
-    role: "USER",
+    role: "User",
     department: "Compliance",
     last_login: "2024-01-08T13:25:00Z",
     status: "active"
@@ -84,7 +84,7 @@ export const mockUsers = [
     name: "Thomas Martinez",
     email: "thomas.martinez@entegris.com",
     title: "IT Administrator",
-    role: "ADMIN",
+    role: "Template Admin",
     department: "IT",
     last_login: "2024-01-07T12:15:00Z",
     status: "active"
@@ -94,7 +94,7 @@ export const mockUsers = [
     name: "Amanda White",
     email: "amanda.white@entegris.com",
     title: "Finance Analyst",
-    role: "USER",
+    role: "User",
     department: "Finance",
     last_login: "2024-01-06T10:50:00Z",
     status: "active"
@@ -104,7 +104,7 @@ export const mockUsers = [
     name: "Kevin Garcia",
     email: "kevin.garcia@entegris.com",
     title: "Process Engineer",
-    role: "USER",
+    role: "User",
     department: "Engineering",
     last_login: "2024-01-05T14:35:00Z",
     status: "active"
@@ -114,7 +114,7 @@ export const mockUsers = [
     name: "Rachel Thompson",
     email: "rachel.thompson@entegris.com",
     title: "Project Manager",
-    role: "ADMIN",
+    role: "Superuser",
     department: "PMO",
     last_login: "2024-01-04T09:40:00Z",
     status: "inactive"

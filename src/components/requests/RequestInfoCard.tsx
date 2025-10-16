@@ -76,16 +76,6 @@ export function RequestInfoCard({ request, formatDateOnly, formatDateTime }: Req
                 <div className="text-muted-foreground text-xs">{request.initiator_email}</div>
               </div>
             </div>
-
-            {/* Row 3: Status, Approval Status, Recipient Email */}
-            <div>
-              <div className="text-muted-foreground mb-1">Status</div>
-              <StatusBadge status={request.status} type="status" />
-            </div>
-            <div>
-              <div className="text-muted-foreground mb-1">Approval Status</div>
-              <StatusBadge status={request.owner_status} type="approval" />
-            </div>
          
             {/* Row 4: Created At, Updated At */}
             <div>

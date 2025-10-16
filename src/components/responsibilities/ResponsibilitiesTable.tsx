@@ -69,7 +69,7 @@ export function ResponsibilitiesTable({
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={responsibility.user.role === 'admin' ? 'default' : 'secondary'} className="text-xs">
+                    <Badge variant={responsibility.user.role === 'Template Admin' ? 'default' : 'secondary'} className="text-xs">
                       {responsibility.user.role}
                     </Badge>
                   </TableCell>

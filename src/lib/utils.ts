@@ -6,7 +6,10 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export const formatDateTime = (dateString: string) => {
+export const formatDateTime = (dateString: string | undefined) => {
+  if (!dateString) {
+    return '';
+  }
   const date = new Date(dateString);
   return format(date, 'dd MMM yyyy HH:mm');
 };

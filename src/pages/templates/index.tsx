@@ -17,7 +17,7 @@ export function Templates() {
 				<Link to="/templates/new">
 					<Button className="bg-red-700 text-white hover:bg-red-800">
 						<Plus className="h-4 w-4 mr-2" />
-						New Template
+						Upload Template
 					</Button>
 				</Link>
 			</div>

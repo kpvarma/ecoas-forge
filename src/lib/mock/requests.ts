@@ -56,9 +56,9 @@ export const generateMockRequests = (): Request[] => {
 		const children: Request[] = [];
     
 		// Determine overall request status based on children completion
-		let overallRequestStatus = "queued";
+		let overallRequestStatus: "queued" | "in_progress" | "completed" | "failed" = "queued";
 		const childStatuses: string[] = [];
-    
+		  
 		for (let j = 1; j <= numChildren; j++) {
 			const docType = documentTypes[Math.floor(Math.random() * documentTypes.length)];
 			const batch = String.fromCharCode(65 + Math.floor(Math.random() * 26)) + (Math.floor(Math.random() * 999) + 100);
@@ -80,6 +80,7 @@ export const generateMockRequests = (): Request[] => {
 				status: childStatus as any,
 				created_at: childCreatedDate.toISOString(),
 				updated_at: childUpdatedDate.toISOString(),
+				received_on: childCreatedDate.toISOString(),
 				request_status_logs: [],
 				parent_id: `REQ-2024-${String(i).padStart(3, '0')}`,
 				plant_id: plantIds[Math.floor(Math.random() * plantIds.length)],
@@ -93,8 +94,10 @@ export const generateMockRequests = (): Request[] => {
 			overallRequestStatus = "completed";
 		} else if (childStatuses.some(s => s === "failed")) {
 			overallRequestStatus = "failed";
-		} else {
+		} else if (childStatuses.some(s => s === "in_progress")) {
 			overallRequestStatus = "in_progress";
+		} else {
+			overallRequestStatus = "queued";
 		}
 
 		requests.push({
@@ -110,6 +113,7 @@ export const generateMockRequests = (): Request[] => {
 			status: overallRequestStatus as any,
 			created_at: createdDate.toISOString(),
 			updated_at: updatedDate.toISOString(),
+			received_on: createdDate.toISOString(),
 			request_status_logs: [],
 			plant_id: plantIds[Math.floor(Math.random() * plantIds.length)],
 			children: children,

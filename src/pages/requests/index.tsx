@@ -6,6 +6,7 @@ import { useRequestsFilter } from "@/hooks/useRequestsFilter";
 import { RequestsHeader } from "@/components/requests/RequestsHeader";
 import { RequestsTable } from "@/components/requests/RequestsTable";
 import { RequestsPagination } from "@/components/requests/RequestsPagination";
+import { Input } from "@/components/ui/input";
 
 export function Requests() {
 	const [showFilters, setShowFilters] = useState(false);
@@ -23,6 +24,7 @@ export function Requests() {
 		created_at: "",
 		updated_at: "",
 	});
+	const [searchTerm, setSearchTerm] = useState("");
 	const initialRequests = generateMockRequests();
 	const itemsPerPage = 10;
 	const navigate = useNavigate();
@@ -34,17 +36,22 @@ export function Requests() {
 		}));
 	};
 
+	const handleSearchTermChange = (term: string) => {
+		setSearchTerm(term);
+		setCurrentPage(1); // Reset to first page on new search
+	};
+
 	const {
 		currentPage,
 		setCurrentPage,
 		paginatedRequests,
 		totalItems,
 		totalPages,
-	} = useRequestsFilter({ initialRequests, itemsPerPage, columnFilters });
+	} = useRequestsFilter({ initialRequests, itemsPerPage, columnFilters, searchTerm });
 
 	const getPaginatedData = () => {
 		let flattenedData: Array<{item: Request; isChild: boolean; parent?: Request}> = [];
-    
+	   
 		paginatedRequests.forEach(request => {
 			flattenedData.push({ item: request, isChild: false });
 			if (expandedRows.has(request.id) && request.children) {
@@ -83,8 +90,15 @@ export function Requests() {
 
 	return (
 		<div className="p-6 space-y-6">
-			<RequestsHeader  />
-	
+			<RequestsHeader />
+			<div className="mb-4">
+				<Input
+					placeholder="Search requests..."
+					value={searchTerm}
+					onChange={(event) => handleSearchTermChange(event.target.value)}
+					className="w-full px-4 py-2"
+				/>
+			</div>
 			<RequestsTable
 				paginatedData={paginatedData}
 				expandedRows={expandedRows}
@@ -95,7 +109,7 @@ export function Requests() {
 				columnFilters={columnFilters}
 				onFilterChange={handleFilterChange}
 			/>
-		        
+			       
 			<RequestsPagination
 				currentPage={currentPage}
 				totalPages={totalPages}

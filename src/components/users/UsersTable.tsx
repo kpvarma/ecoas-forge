@@ -166,7 +166,20 @@ export default function UsersTable({ users, itemsPerPage = 10, onSelectUser }: {
                       </div>
                     </div>
                   </td>
-                  <td className="px-3 py-3"><Badge variant={u.role === 'ADMIN' ? 'default' : 'secondary'} className="text-xs">{u.role}</Badge></td>
+                  <td className="px-3 py-3">
+                    <Badge
+                      variant={
+                        u.role === 'Superuser'
+                          ? 'default'
+                          : u.role === 'Template Admin'
+                            ? 'outline'
+                            : 'secondary'
+                      }
+                      className="text-xs"
+                    >
+                      {u.role}
+                    </Badge>
+                  </td>
                   <td className="px-3 py-3"><div className="flex items-center text-sm"><Briefcase className="h-3 w-3 mr-2 text-muted-foreground" />{u.title}</div></td>
                   <td className="px-3 py-3"><div className="flex items-center text-sm"><Building className="h-3 w-3 mr-2 text-muted-foreground" />{u.department}</div></td>
                   <td className="px-3 py-3"><div className="flex items-center text-xs text-muted-foreground"><Clock className="h-3 w-3 mr-2" />{formatDate(u.last_login)}</div></td>

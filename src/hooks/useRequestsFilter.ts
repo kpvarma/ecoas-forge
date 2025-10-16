@@ -5,24 +5,35 @@ interface UseRequestsFilterProps {
   initialRequests: Request[];
   itemsPerPage: number;
   columnFilters: Record<string, string>;
+  searchTerm: string;
 }
 
 export const useRequestsFilter = ({
   initialRequests,
   itemsPerPage,
   columnFilters,
+  searchTerm,
 }: UseRequestsFilterProps) => {
   const [currentPage, setCurrentPage] = useState(1);
 
   const filteredRequests = useMemo(() => {
-    return initialRequests.filter(request => {
+    let filtered = initialRequests.filter(request => {
       return Object.entries(columnFilters).every(([key, value]) => {
         if (!value) return true;
         const requestValue = (request as any)[key]?.toString().toLowerCase();
         return requestValue?.includes(value.toLowerCase());
       });
     });
-  }, [initialRequests, columnFilters]);
+
+    if (searchTerm) {
+      filtered = filtered.filter(request =>
+        Object.values(request).some(value =>
+          String(value).toLowerCase().includes(searchTerm.toLowerCase())
+        )
+      );
+    }
+    return filtered;
+  }, [initialRequests, columnFilters, searchTerm]);
 
   const totalItems = filteredRequests.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);

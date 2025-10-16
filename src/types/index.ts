@@ -19,6 +19,7 @@ export interface Request {
   status: 'pending' | 'in_progress' | 'completed' | 'failed';
   created_at: string;
   updated_at: string;
+  received_on?: string;
   request_status_logs: StatusLog[];
   owner_status_logs?: StatusLog[];
   /**
@@ -40,21 +41,20 @@ export interface StatusLog {
 }
 
 export interface Template {
-  id: number; // Changed from string to number
-  part_id: number; // Changed from part_no: string to part_id: number
-  template_code?: string; // Kept as optional, not in API response
-  xml_file_path: string; // Changed from xml_file to xml_file_path
+  id: number;
+  part_id: number;
+  template_code?: string;
+  xml_file_path: string;
   created_at: string;
   updated_at: string;
-  status: 'inactive' | 'active';
-  plant_id?: string; // Kept as optional, not in API response
+  status: 'inactive' | 'active' | 'archived';
   hintl_enabled: boolean;
-  description?: string; // Kept as optional, not in API response
-  owners?: string[]; // Kept as optional, not in API response
+  description?: string;
+  owners?: string[];
 }
 
-export type CreateTemplatePayload = Omit<Template, 'id' | 'created_at' | 'updated_at' | 'template_code' | 'plant_id' | 'description' | 'owners'>;
-export type UpdateTemplatePayload = Partial<Omit<Template, 'id' | 'created_at' | 'template_code' | 'plant_id' | 'description' | 'owners'>>;
+export type CreateTemplatePayload = Omit<Template, 'id' | 'created_at' | 'updated_at' | 'template_code' | 'description' | 'owners'>;
+export type UpdateTemplatePayload = Partial<Omit<Template, 'id' | 'created_at' | 'template_code' | 'description' | 'owners'>>;
 
 export interface Responsibility {
   id: string;
@@ -81,7 +81,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  role: 'admin' | 'reviewer' | 'user';
+  role: 'Superuser' | 'Template Admin' | 'User';
 }
 
 export interface FilterOptions {

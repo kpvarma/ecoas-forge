@@ -35,21 +35,18 @@ const mockUserRoles = [
   {
     id: "ROLE-1001",
     user: "John Smith",
-    partNumber: "IPA-SG-99.9",
     plantId: "PLT-001",
     createdAt: "2024-01-10T09:00:00Z",
   },
   {
     id: "ROLE-1002",
     user: "John Smith", 
-    partNumber: "ACE-EG-99.5",
     plantId: "PLT-002",
     createdAt: "2024-01-08T14:30:00Z",
   },
   {
     id: "ROLE-1003",
     user: "John Smith",
-    partNumber: "MET-AL-98.7", 
     plantId: "PLT-003",
     createdAt: "2024-01-05T11:15:00Z",
   }
@@ -80,11 +77,6 @@ export function UserDetail() {
   const handleDeleteRole = (roleId: string) => {
     // Handle role deletion - in real app this would call an API
     console.log(`Deleting role ${roleId}`);
-  };
-
-  const handleViewRequests = (partNumber: string, plantId: string, userId: string) => {
-    // Navigate to requests page with filters
-    window.open(`/requests?partNumber=${partNumber}&plantId=${plantId}&userId=${userId}`, '_blank');
   };
 
   return (
@@ -171,7 +163,6 @@ export function UserDetail() {
             <TableHeader>
               <TableRow>
                 <TableHead>Role ID</TableHead>
-                <TableHead>Part Number</TableHead>
                 <TableHead>Plant ID</TableHead>
                 <TableHead>Created At</TableHead>
                 <TableHead>Actions</TableHead>
@@ -181,26 +172,13 @@ export function UserDetail() {
               {mockUserRoles.map((role) => (
                 <TableRow key={role.id}>
                   <TableCell className="font-medium">{role.id}</TableCell>
-                  <TableCell>{role.partNumber}</TableCell>
                   <TableCell>{role.plantId}</TableCell>
                   <TableCell>{formatDate(role.createdAt)}</TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0"
-                        onClick={() => handleViewRequests(role.partNumber, role.plantId, user.id)}
-                        title="View requests"
-                      >
-                        <ClipboardList className="h-4 w-4" />
-                      </Button>
-                      <Link to={`/responsibilities/${role.id}/edit`}>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="Edit role">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </Link>
-                      
+                      <Link to={`/responsibilities?user=${role.id}`}>
+                                             <Button variant="ghost" size="sm" className="h-8 w-8 p-0" title="View user roles"><Shield className="h-4 w-4" /></Button>
+                                           </Link> 
                     </div>
                   </TableCell>
                 </TableRow>

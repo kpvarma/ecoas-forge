@@ -33,6 +33,7 @@ export function Dashboard() {
 	   totalAutoApprovals: 789,
 	   totalHITLApprovals:43,
 	   requestStatusCounts: {
+	     queued: 50,
 	     in_progress: 234,
 	     failed: 35,
 	     completed: 833,
@@ -107,6 +108,7 @@ export function Dashboard() {
 			k === "completed" ? <CheckCircle className="h-3 w-3 text-success" /> :
 			k === "in_progress" ? <Clock className="h-3 w-3 text-warning" /> :
 			k === "failed" ? <XCircle className="h-3 w-3 text-destructive" /> :
+			k === "queued" ? <Clock className="h-3 w-3 text-muted-foreground" /> :
 			null,
 	}));
 

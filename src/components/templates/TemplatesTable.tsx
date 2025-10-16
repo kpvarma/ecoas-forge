@@ -101,7 +101,6 @@ export function TemplatesTable() {
 
 	const [searchTerm, setSearchTerm] = useState("");
 	const [statusFilter, setStatusFilter] = useState("");
-	const [plantIdFilter, setPlantIdFilter] = useState("");
 	const [ownerFilter, setOwnerFilter] = useState("");
 
 	useEffect(() => {
@@ -113,15 +112,13 @@ export function TemplatesTable() {
 	}, []);
 
 	const filteredTemplates = templates.filter(template => {
-		const matchesSearch = template.part_id.toString().includes(searchTerm.toLowerCase()) ||
-			template.xml_file_path.toLowerCase().includes(searchTerm.toLowerCase()) ||
-			(template.plant_id && template.plant_id.toLowerCase().includes(searchTerm.toLowerCase()));
+		const matchesSearch = template.part_id.toString().toLowerCase().includes(searchTerm.toLowerCase()) ||
+			template.xml_file_path.toLowerCase().includes(searchTerm.toLowerCase());
 
 		const matchesStatus = !statusFilter || template.status === statusFilter;
-		const matchesPlantId = !plantIdFilter || template.plant_id === plantIdFilter;
 		const matchesOwner = !ownerFilter || (ownerFilter === "unassigned" && (!template.owners || template.owners.length === 0)) || (template.owners && template.owners.includes(ownerFilter));
 
-		return matchesSearch && matchesStatus && matchesPlantId && matchesOwner;
+		return matchesSearch && matchesStatus && matchesOwner;
 	});
 
 	const totalItems = filteredTemplates.length;
@@ -132,21 +129,21 @@ export function TemplatesTable() {
 
 	const handleViewXml = (template: Template) => { setSelectedTemplate(template); setXmlDialogOpen(true); };
 	const handleDownloadXml = (template: Template) => {
-		const blob = new Blob([template.xml_file_path], { type: 'application/xml' });
+		const blob = new Blob([mockXmlContent], { type: 'application/xml' });
 		const url = URL.createObjectURL(blob);
 		const a = document.createElement('a');
 		a.href = url;
-		a.download = `template-${template.id}.xml`; // Use a more generic name or derive from API
+		a.download = template.xml_file_path;
 		document.body.appendChild(a);
 		a.click();
 		document.body.removeChild(a);
 		URL.revokeObjectURL(url);
 	};
 
-	const toggleHintl = async (templateId: number, currentStatus: boolean) => {
+	const toggleHintl = async (templateId: string, currentStatus: boolean) => {
 		try {
-			await templatesClient.update(String(templateId), { hintl_enabled: !currentStatus });
-			setTemplates(prev => prev.map(template => template.id === templateId ? { ...template, hintl_enabled: !currentStatus } : template));
+			await templatesClient.update(templateId, { hintl_enabled: !currentStatus });
+			setTemplates(prev => prev.map(template => template.id.toString() === templateId ? { ...template, hintl_enabled: !currentStatus } : template));
 			toast({
 				title: "HITL Status Updated",
 				description: `Template HITL status changed to ${!currentStatus ? "enabled" : "disabled"}.`,
@@ -161,10 +158,10 @@ export function TemplatesTable() {
 		}
 	};
 
-	const handleStatusChange = async (templateId: number, newStatus: 'active' | 'inactive') => {
+	const handleStatusChange = async (templateId: string, newStatus: 'active' | 'inactive') => {
 		try {
-			await templatesClient.update(String(templateId), { status: newStatus });
-			setTemplates(prev => prev.map(template => template.id === templateId ? { ...template, status: newStatus } : template));
+			await templatesClient.update(templateId, { status: newStatus });
+			setTemplates(prev => prev.map(template => template.id.toString() === templateId ? { ...template, status: newStatus } : template));
 			toast({
 				title: "Template Status Updated",
 				description: `Template status changed to ${newStatus}.`,
@@ -200,8 +197,6 @@ export function TemplatesTable() {
 				setSearchTerm={setSearchTerm}
 				statusFilter={statusFilter}
 				setStatusFilter={setStatusFilter}
-				plantIdFilter={plantIdFilter}
-				setPlantIdFilter={setPlantIdFilter}
 				ownerFilter={ownerFilter}
 				setOwnerFilter={setOwnerFilter}
 				setCurrentPage={setCurrentPage}
@@ -213,7 +208,6 @@ export function TemplatesTable() {
 						<tr className="border-b border-border">
 							<th className="px-3 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Template</th>
 							<th className="px-3 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Part ID</th>
-							<th className="px-3 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Plant ID</th>
 							<th className="px-3 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</th>
 							<th className="px-3 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">HITL</th>
 							<th className="px-3 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Updated At</th>
@@ -223,7 +217,7 @@ export function TemplatesTable() {
 					<tbody className="divide-y divide-border">
 						{displayedTemplates.length === 0 ? (
 							<tr>
-								<td colSpan={7} className="px-3 py-3 text-center text-muted-foreground">No templates found</td>
+								<td colSpan={5} className="px-3 py-3 text-center text-muted-foreground">No templates found</td>
 							</tr>
 						) : (
 							displayedTemplates.map((template) => (
@@ -234,27 +228,27 @@ export function TemplatesTable() {
 												<FolderOpen className="h-4 w-4 text-primary" />
 											</div>
 											<div>
-												<button onClick={() => handleViewXml(template)} className="text-sm font-medium text-primary hover:underline">{template.template_code || `Template ${template.id}`}</button>
+												<button onClick={() => handleViewXml(template)} className="text-sm font-medium text-primary hover:underline">{template.template_code}</button>
 											</div>
 										</div>
 									</td>
 									<td className="px-3 py-3"><div className="flex items-center text-sm"><Building className="h-3 w-3 mr-2 text-muted-foreground" />{template.part_id}</div></td>
-									<td className="px-3 py-3"><div className="flex items-center text-sm">{template.plant_id}</div></td>
 									<td className="px-3 py-3">
-										<Select value={template.status} onValueChange={(value: 'active' | 'inactive') => handleStatusChange(template.id, value)}>
+										<Select value={template.status} onValueChange={(value: 'active' | 'inactive') => handleStatusChange(template.id.toString(), value)}>
 											<SelectTrigger className="w-[120px]">
 												<SelectValue placeholder="Status" />
 											</SelectTrigger>
 											<SelectContent>
 												<SelectItem value="active">Active</SelectItem>
 												<SelectItem value="inactive">Inactive</SelectItem>
+												<SelectItem value="archived">Archived</SelectItem>
 											</SelectContent>
 										</Select>
 									</td>
 									<td className="px-3 py-3">
 										<Switch
 											checked={template.hintl_enabled}
-											onCheckedChange={() => toggleHintl(template.id, template.hintl_enabled)}
+											onCheckedChange={() => toggleHintl(template.id.toString(), template.hintl_enabled)}
 										/>
 									</td>
 									<td className="px-3 py-3"><div className="flex items-center text-xs text-muted-foreground">{formatDate(template.updated_at)}</div></td>
@@ -291,10 +285,10 @@ export function TemplatesTable() {
 			<Dialog open={xmlDialogOpen} onOpenChange={setXmlDialogOpen}>
 				<DialogContent className="max-w-4xl h-[80vh]">
 					<DialogHeader>
-						{/* <DialogTitle className="flex items-center"><Code className="h-5 w-5 mr-2 text-primary" />XML Template: {selectedTemplate?.xml_file_path}</DialogTitle> */}
-						<DialogDescription>Part ID: {selectedTemplate?.part_id}</DialogDescription>
+						{/* <DialogTitle className="flex items-center"><Code className="h-5 w-5 mr-2 text-primary" />XML Template: {selectedTemplate?.xml_file}</DialogTitle> */}
+						<DialogDescription>Part Number: {selectedTemplate?.part_id}</DialogDescription>
 					</DialogHeader>
-					<div className="flex-1 overflow-hidden"><div className="h-full overflow-auto"><SyntaxHighlighter language="xml" style={tomorrow} className="!bg-muted/30 !m-0 h-full text-sm rounded-lg" customStyle={{ margin: 0, padding: '1rem', background: 'hsl(var(--muted) / 0.3)', height: '100%', overflow: 'auto', borderRadius: '0.5rem' }}>{selectedTemplate?.xml_file_path}</SyntaxHighlighter></div></div>
+					<div className="flex-1 overflow-hidden"><div className="h-full overflow-auto"><SyntaxHighlighter language="xml" style={tomorrow} className="!bg-muted/30 !m-0 h-full text-sm rounded-lg" customStyle={{ margin: 0, padding: '1rem', background: 'hsl(var(--muted) / 0.3)', height: '100%', overflow: 'auto', borderRadius: '0.5rem' }}>{mockXmlContent}</SyntaxHighlighter></div></div>
 					<DialogFooter className="flex justify-between"><Button variant="outline" onClick={() => selectedTemplate && handleDownloadXml(selectedTemplate)}><Download className="h-4 w-4 mr-2"/>Download</Button><Button onClick={() => setXmlDialogOpen(false)}><X className="h-4 w-4 mr-2"/>Close</Button></DialogFooter>
 				</DialogContent>
 			</Dialog>
@@ -305,7 +299,7 @@ export function TemplatesTable() {
 					<AlertDialogHeader>
 						<AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
 						<AlertDialogDescription>
-							This action cannot be undone. This will permanently delete the template with Part ID "{templateToDelete?.part_id}" (ID: {templateToDelete?.id}).
+							This action cannot be undone. This will permanently delete the template "{templateToDelete?.part_id}" (ID: {templateToDelete?.id}).
 						</AlertDialogDescription>
 					</AlertDialogHeader>
 					<AlertDialogFooter>

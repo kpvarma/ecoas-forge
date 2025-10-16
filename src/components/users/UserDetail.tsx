@@ -1,6 +1,7 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { User as UserIcon, Mail, Shield, Clock } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 export default function UserDetail({ user }: { user: any }) {
   if (!user) return null;
@@ -23,7 +24,21 @@ export default function UserDetail({ user }: { user: any }) {
       <CardContent>
         <div className="grid grid-cols-1 gap-2">
           <div className="text-sm"><Mail className="h-3 w-3 inline mr-2" />{user.email}</div>
-          <div className="text-sm"><Shield className="h-3 w-3 inline mr-2" />{user.role}</div>
+          <div className="text-sm">
+            <Shield className="h-3 w-3 inline mr-2" />
+            <Badge
+              variant={
+                user.role === 'Superuser'
+                  ? 'default'
+                  : user.role === 'Template Admin'
+                    ? 'outline'
+                    : 'secondary'
+              }
+              className="text-xs"
+            >
+              {user.role}
+            </Badge>
+          </div>
           <div className="text-sm"><Clock className="h-3 w-3 inline mr-2" />Last login: {formatDate(user.last_login)}</div>
         </div>
       </CardContent>

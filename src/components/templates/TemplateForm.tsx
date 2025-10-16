@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Select,
   SelectContent,
@@ -14,7 +15,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { useToast } from "@/components/ui/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Template } from "@/types";
 
 interface TemplateFormProps {
@@ -25,7 +38,6 @@ interface TemplateFormProps {
 
 interface TemplateFormData {
   partNumber: string;
-  plantId: string;
   hintl: boolean;
   xmlFile: File | null;
 }
@@ -48,35 +60,20 @@ export function TemplateForm({ initialData, isEditMode = false, onSubmit }: Temp
   const navigate = useNavigate();
   const { toast } = useToast();
   const [formData, setFormData] = useState<TemplateFormData>({
-    partNumber: initialData?.part_no || "",
-    plantId: initialData?.plant_id || "",
+    partNumber: initialData?.part_id ? String(initialData.part_id) : "",
     hintl: initialData?.hintl_enabled || false,
     xmlFile: null,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
 
   useEffect(() => {
     if (initialData) {
       setFormData({
-        partNumber: initialData.part_no || "",
-        plantId: initialData.plant_id || "",
+        partNumber: initialData.part_id ? String(initialData.part_id) : "",
         hintl: initialData.hintl_enabled || false,
         xmlFile: null, // XML file is not pre-filled for security/practical reasons
       });
-    }
-  }, [initialData]);
-
-  // Add a useEffect to update formData when initialData changes, especially for partNumber and plantId
-  useEffect(() => {
-    if (initialData) {
-      setFormData(prev => ({
-        ...prev,
-        partNumber: initialData.part_no || "",
-        plantId: initialData.plant_id || "",
-        owner: initialData.owners?.[0] || "unassigned",
-        hintl: initialData.hintl_enabled || false,
-        description: initialData.description || "",
-      }));
     }
   }, [initialData]);
 
@@ -95,7 +92,7 @@ export function TemplateForm({ initialData, isEditMode = false, onSubmit }: Temp
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handlePreSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.partNumber.trim()) {
@@ -116,7 +113,12 @@ export function TemplateForm({ initialData, isEditMode = false, onSubmit }: Temp
       return;
     }
 
+    setShowConfirmDialog(true);
+  };
+
+  const handleConfirmSubmit = async () => {
     setIsSubmitting(true);
+    setShowConfirmDialog(false);
     await onSubmit(formData);
     setIsSubmitting(false);
   };
@@ -140,36 +142,41 @@ export function TemplateForm({ initialData, isEditMode = false, onSubmit }: Temp
             <CardTitle className="flex items-center"><FileText className="h-5 w-5 mr-2 text-primary"/>Template Information</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handlePreSubmit} className="space-y-6">
               {/* Part Number */}
               <div className="space-y-2">
-                <Label htmlFor="partNumber" className="text-sm font-medium">
-                  Part Number <span className="text-destructive">*</span>
+                <Label htmlFor="partNumber" className="text-sm font-medium flex items-center">
+                  Part Number <span className="text-destructive ml-1">*</span>
+                  {isEditMode && (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-4 w-4 ml-2 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Part number cannot be changed in edit mode.</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
                 </Label>
-                <Select
-                  value={formData.partNumber}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, partNumber: value }))}
-                >
-                  <SelectTrigger id="partNumber" className="w-full">
-                    <SelectValue placeholder="Select a part number" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {mockPartNumbers.map((partNumber) => (
-                      <SelectItem key={partNumber} value={partNumber}>
-                        {partNumber}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {isEditMode ? (
+                  <Input
+                    id="partNumber"
+                    value={formData.partNumber}
+                    readOnly
+                    className="w-full bg-gray-100 cursor-not-allowed"
+                  />
+                ) : (
+                  <SearchableSelect
+                    placeholder="Select a part number"
+                    options={mockPartNumbers.map(partNumber => ({ label: partNumber, value: partNumber }))}
+                    value={formData.partNumber}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, partNumber: value }))}
+                  />
+                )}
               </div>
 
-              {/* Plant ID (only for edit mode, or if it's a new field) */}
-              {isEditMode && (
-                <div className="space-y-2">
-                  <Label htmlFor="plantId" className="text-sm font-medium">Plant ID <span className="text-destructive">*</span></Label>
-                  <Input id="plantId" placeholder="e.g., PLT-001" value={formData.plantId} onChange={(e) => setFormData(prev => ({ ...prev, plantId: e.target.value }))} className="w-full" />
-                </div>
-              )}
 
               {/* XML File Upload */}
               <div className="space-y-2">
@@ -180,7 +187,7 @@ export function TemplateForm({ initialData, isEditMode = false, onSubmit }: Temp
                   <Upload className="h-10 w-10 mx-auto text-muted-foreground mb-4" />
                   <div className="space-y-2">
                     <p className="text-sm text-muted-foreground">
-                      {formData.xmlFile ? formData.xmlFile.name : (isEditMode && initialData ? initialData.xml_file : "Click to upload XML file or drag and drop")}
+                      {formData.xmlFile ? formData.xmlFile.name : (isEditMode && initialData?.xml_file_path ? initialData.xml_file_path.split('/').pop() : "Click to upload XML file or drag and drop")}
                     </p>
                     <input
                       id="xmlFile"
@@ -205,10 +212,10 @@ export function TemplateForm({ initialData, isEditMode = false, onSubmit }: Temp
                     <span>{formData.xmlFile.name}</span>
                   </div>
                 )}
-                {isEditMode && !formData.xmlFile && initialData?.xml_file && (
+                {isEditMode && !formData.xmlFile && initialData?.xml_file_path && (
                   <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                     <FileText className="h-4 w-4" />
-                    <span>Current: {initialData.xml_file}</span>
+                    <span>Current: {initialData.xml_file_path.split('/').pop()}</span>
                   </div>
                 )}
               </div>
@@ -233,6 +240,7 @@ export function TemplateForm({ initialData, isEditMode = false, onSubmit }: Temp
                 </div>
               </div>
 
+
               {/* Submit Buttons */}
               <div className="flex justify-end space-x-3 pt-4">
                 <Button
@@ -256,7 +264,7 @@ export function TemplateForm({ initialData, isEditMode = false, onSubmit }: Temp
                   ) : (
                     <>
                       <FileText className="h-4 w-4 mr-2" />
-                      {isEditMode ? "Save Changes" : "Create Template"}
+                      {isEditMode ? "Save Changes" : "Upload Template"}
                     </>
                   )}
                 </Button>
@@ -265,6 +273,24 @@ export function TemplateForm({ initialData, isEditMode = false, onSubmit }: Temp
           </CardContent>
         </Card>
       </div>
+
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Template Upload</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to upload this template to part number "{formData.partNumber}"?
+              This action will associate the uploaded XML file with the specified part number.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isSubmitting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmSubmit} disabled={isSubmitting}>
+              {isSubmitting ? "Uploading..." : "Upload"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -1,9 +1,9 @@
 import { Responsibility, User } from '../../types';
 
 export const mockUsers: User[] = [
-  { id: "user-1", name: "John Smith", email: "john.smith@example.com", role: "admin" },
-  { id: "user-2", name: "Sarah Johnson", email: "sarah.johnson@example.com", role: "reviewer" },
-  { id: "user-3", name: "Michael Brown", email: "michael.brown@example.com", role: "user" },
+  { id: "user-1", name: "John Smith", email: "john.smith@example.com", role: "Template Admin" },
+  { id: "user-2", name: "Sarah Johnson", email: "sarah.johnson@example.com", role: "Superuser" },
+  { id: "user-3", name: "Michael Brown", email: "michael.brown@example.com", role: "User" },
 ];
 
 export const mockPartNumbers = [

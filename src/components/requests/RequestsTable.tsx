@@ -57,7 +57,7 @@ export function RequestsTable({
                   Subject / Document Name
                 </th>
                 <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  <div>Status</div>
+                  <div>Processing Status</div>
                   <div className="text-[0.65rem] font-normal normal-case">(PDF to XML Conversion)</div>
                 </th>
                 <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
@@ -144,26 +144,39 @@ export function RequestsTable({
                     <StatusBadge status={item.status.toUpperCase()} type="status" />
                   </td>
                   <td className="px-2 py-2">
-                    {isChild && (
+                    {isChild ? (
                       <StatusBadge status={item.owner_status.toUpperCase()} type="approval" />
+                    ):(
+                     <div className="text-sm text-muted-foreground">-</div>
                     )}
+                   
                   </td>
                   <td className="px-2 py-2">
-                    {isChild && (
+                    {isChild ? (
                       <MultipleOwnersDisplay owners={item.owner ? [item.owner] : []} />
+                    ):(
+                      <div className="text-sm text-muted-foreground">-</div>
                     )}
                   </td>
                  
                    <td className="px-2 py-2">
-                    {isChild && (
+                    {isChild ? (
                       <>John </>
+                    ):(
+                      <div className="text-sm text-muted-foreground">-</div>
                     )}
                   </td>
                   <td className="px-2 py-2 text-xs text-muted-foreground">
-                    {formatDateOnly(item.created_at)}
+                    {formatDateTime(item.created_at)}
                   </td>
                   <td className="px-2 py-2 text-xs text-muted-foreground">
+                    {isChild ? (
+                      <>
                     {formatDateTime(item.updated_at)}
+                    </>
+                    ):(
+                      <div className="text-sm text-muted-foreground">-</div>
+                    )}
                   </td>
                  
                 </tr>
