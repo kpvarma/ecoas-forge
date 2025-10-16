@@ -4,37 +4,43 @@ import { Request } from "@/types";
 import { generateMockRequests } from "@/lib/mock/requests";
 import { useRequestsFilter } from "@/hooks/useRequestsFilter";
 import { RequestsHeader } from "@/components/requests/RequestsHeader";
-import { RequestsFilter } from "@/components/requests/RequestsFilter";
 import { RequestsTable } from "@/components/requests/RequestsTable";
 import { RequestsPagination } from "@/components/requests/RequestsPagination";
 
 export function Requests() {
 	const [showFilters, setShowFilters] = useState(false);
 	const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+	const [columnFilters, setColumnFilters] = useState<Record<string, string>>({
+		id: "",
+		lot_id: "",
+		part_number: "",
+		plant_id: "",
+		document_name: "",
+		status: "",
+		owner_status: "",
+		owner: "",
+		supplier: "",
+		created_at: "",
+		updated_at: "",
+	});
 	const initialRequests = generateMockRequests();
 	const itemsPerPage = 10;
 	const navigate = useNavigate();
 
+	const handleFilterChange = (columnId: string, value: string) => {
+		setColumnFilters(prevFilters => ({
+			...prevFilters,
+			[columnId]: value,
+		}));
+	};
+
 	const {
-		searchTerm,
-		setSearchTerm,
-		statusFilter,
-		setStatusFilter,
-		approvalStatusFilter,
-		setApprovalStatusFilter,
-		ownerFilter,
-		setOwnerFilter,
-		plantIdFilter,
-		setPlantIdFilter,
-		partNumberFilter,
-		setPartNumberFilter,
 		currentPage,
 		setCurrentPage,
-		filteredRequests,
 		paginatedRequests,
 		totalItems,
 		totalPages,
-	} = useRequestsFilter({ initialRequests, itemsPerPage });
+	} = useRequestsFilter({ initialRequests, itemsPerPage, columnFilters });
 
 	const getPaginatedData = () => {
 		let flattenedData: Array<{item: Request; isChild: boolean; parent?: Request}> = [];
@@ -79,24 +85,6 @@ export function Requests() {
 		<div className="p-6 space-y-6">
 			<RequestsHeader  />
 	
-			<RequestsFilter
-				searchTerm={searchTerm}
-				setSearchTerm={setSearchTerm}
-				statusFilter={statusFilter}
-				setStatusFilter={setStatusFilter}
-				approvalStatusFilter={approvalStatusFilter}
-				setApprovalStatusFilter={setApprovalStatusFilter}
-				ownerFilter={ownerFilter}
-				setOwnerFilter={setOwnerFilter}
-				plantIdFilter={plantIdFilter}
-				setPlantIdFilter={setPlantIdFilter}
-				partNumberFilter={partNumberFilter}
-				setPartNumberFilter={setPartNumberFilter}
-				showFilters={showFilters}
-				setShowFilters={setShowFilters}
-				hideControls={false}
-			/>
-
 			<RequestsTable
 				paginatedData={paginatedData}
 				expandedRows={expandedRows}
@@ -104,6 +92,8 @@ export function Requests() {
 				handleViewRequest={handleViewRequest}
 				handleViewDetail2={handleViewDetail2}
 				handleViewDocument={handleViewDocument}
+				columnFilters={columnFilters}
+				onFilterChange={handleFilterChange}
 			/>
 		        
 			<RequestsPagination

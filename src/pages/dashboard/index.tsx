@@ -1,5 +1,5 @@
 import React from "react";
-import { FileText, Files, UserX, ThumbsUp, ThumbsDown, CheckCircle, Clock, XCircle, TrendingUp, Users } from "lucide-react";
+import { FileText, Files, UserX, ThumbsUp, ThumbsDown, CheckCircle, Clock, XCircle, Users } from "lucide-react";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
 import StatusCard from "@/components/dashboard/StatusCard";
 import BreakdownCard from "@/components/dashboard/BreakdownCard";
@@ -30,22 +30,22 @@ export function Dashboard() {
 	   totalDocuments: 3421,
 	   unassigned: 156,
 	   totalRejections: 23,
-	   totalApprovals: 789,
+	   totalAutoApprovals: 789,
+	   totalHITLApprovals:43,
 	   requestStatusCounts: {
-	     queued: 145,
 	     in_progress: 234,
 	     failed: 35,
 	     completed: 833,
 	   },
 	   documentStatusCounts: {
-	     queued: 245,
 	     in_progress: 456,
 	     failed: 67,
 	     completed: 2653,
 	   },
 	   approvalStatusCounts: {
 	     pending: 234,
-	     accepted: 789,
+	     auto_approved: 789,
+	     hitl_approved: 43,
 	     rejected: 23,
 	   },
 	   ownerBreakdown: {
@@ -64,14 +64,17 @@ export function Dashboard() {
 	     const status = filters.approvalStatus as keyof typeof baseDashboardMetrics.approvalStatusCounts;
 	     filteredMetrics.approvalStatusCounts = {
 	       pending: 0,
-	       accepted: 0,
+	       auto_approved: 0,
+	       hitl_approved: 0,
 	       rejected: 0,
-	       [status]: baseDashboardMetrics.approvalStatusCounts[status],
+	       [status]: baseDashboardMetrics.approvalStatusCounts[status as keyof typeof baseDashboardMetrics.approvalStatusCounts],
 	     };
-	     filteredMetrics.totalApprovals = status === 'accepted' ? baseDashboardMetrics.approvalStatusCounts.accepted : 0;
+	     filteredMetrics.totalAutoApprovals = status === 'auto_approved' ? baseDashboardMetrics.approvalStatusCounts.auto_approved : 0;
+	     filteredMetrics.totalHITLApprovals = status === 'hitl_approved' ? baseDashboardMetrics.approvalStatusCounts.hitl_approved : 0;
 	     filteredMetrics.totalRejections = status === 'rejected' ? baseDashboardMetrics.approvalStatusCounts.rejected : 0;
 	   } else {
-	     filteredMetrics.totalApprovals = baseDashboardMetrics.totalApprovals;
+	     filteredMetrics.totalAutoApprovals = baseDashboardMetrics.totalAutoApprovals;
+	     filteredMetrics.totalHITLApprovals = baseDashboardMetrics.totalHITLApprovals;
 	     filteredMetrics.totalRejections = baseDashboardMetrics.totalRejections;
 	   }
 
@@ -104,7 +107,7 @@ export function Dashboard() {
 			k === "completed" ? <CheckCircle className="h-3 w-3 text-success" /> :
 			k === "in_progress" ? <Clock className="h-3 w-3 text-warning" /> :
 			k === "failed" ? <XCircle className="h-3 w-3 text-destructive" /> :
-			<TrendingUp className="h-3 w-3 text-muted-foreground" />,
+			null,
 	}));
 
 	const documentItems = Object.entries(dashboardMetrics.documentStatusCounts).map(([k, v]) => ({
@@ -115,14 +118,18 @@ export function Dashboard() {
 			k === "completed" ? <CheckCircle className="h-3 w-3 text-success" /> :
 			k === "in_progress" ? <Clock className="h-3 w-3 text-warning" /> :
 			k === "failed" ? <XCircle className="h-3 w-3 text-destructive" /> :
-			<TrendingUp className="h-3 w-3 text-muted-foreground" />,
+			null, // Removed 'queued' status, so default to null for other cases
 	}));
 
 	const approvalItems = Object.entries(dashboardMetrics.approvalStatusCounts).map(([k, v]) => ({
 		key: k,
-		label: k,
+		label: k === "auto_approved" ? "Auto Approved" : k === "hitl_approved" ? "HITL Approved" : k.charAt(0).toUpperCase() + k.slice(1),
 		value: v,
-		icon: k === "accepted" ? <ThumbsUp className="h-3 w-3 text-success" /> : k === "pending" ? <Clock className="h-3 w-3 text-warning" /> : <ThumbsDown className="h-3 w-3 text-destructive" />,
+		icon:
+			k === "auto_approved" ? <CheckCircle className="h-3 w-3 text-success" /> :
+			k === "hitl_approved" ? <ThumbsUp className="h-3 w-3 text-success" /> :
+			k === "pending" ? <Clock className="h-3 w-3 text-warning" /> :
+			<ThumbsDown className="h-3 w-3 text-destructive" />,
 	}));
 
 	const ownerItems = Object.entries(dashboardMetrics.ownerBreakdown).map(([k, v]) => ({
@@ -138,11 +145,13 @@ export function Dashboard() {
 			   <DashboardFilter onFilterChange={handleFilterChange} />
 
 			{/* Overview Metrics */}
-			<div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+			<div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
 				<StatusCard title="Total Requests" count={dashboardMetrics.totalRequests} icon={FileText} />
 				<StatusCard title="Total Documents" count={dashboardMetrics.totalDocuments} icon={Files} />
 				<StatusCard title="Unassigned" count={dashboardMetrics.unassigned} icon={UserX} variant="warning" />
-				<StatusCard title="Total Approvals" count={dashboardMetrics.totalApprovals} icon={ThumbsUp} variant="success" />
+				<StatusCard title="Total HITL Approvals" count={dashboardMetrics.totalHITLApprovals} icon={ThumbsUp} variant="success" />
+				   <StatusCard title="Total Auto Approvals" count={dashboardMetrics.totalAutoApprovals} icon={CheckCircle} variant="success" />
+
 				<StatusCard title="Total Rejections" count={dashboardMetrics.totalRejections} icon={ThumbsDown} variant="error" />
 			</div>
 

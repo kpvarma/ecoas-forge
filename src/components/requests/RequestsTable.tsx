@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
 import { ChevronDown, ChevronRight, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { StatusBadge } from "@/components/StatusBadge";
 import { OwnerBadge, MultipleOwnersDisplay } from "@/components/OwnerBadge";
 import { formatDateTime, formatDateOnly } from "@/lib/utils";
@@ -14,6 +16,8 @@ interface RequestsTableProps {
   handleViewRequest: (id: string) => void;
   handleViewDetail2: (id: string) => void;
   handleViewDocument: (id: string) => void;
+  columnFilters: Record<string, string>;
+  onFilterChange: (columnId: string, value: string) => void;
 }
 
 export function RequestsTable({
@@ -23,6 +27,8 @@ export function RequestsTable({
   handleViewRequest,
   handleViewDetail2,
   handleViewDocument,
+  columnFilters,
+  onFilterChange,
 }: RequestsTableProps) {
   return (
     <Card className="enterprise-card">
@@ -35,18 +41,40 @@ export function RequestsTable({
             <thead>
               <tr className="border-b border-border">
                 <th className="w-8 h-8 text-left"></th>
-                <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Request / Document ID</th>
-                <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Lot Id</th>
-                <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Part Number</th>
-                <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Plant ID/Email</th>
-                <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Subject / Document Name</th>
-                <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</th>
-                <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Approval Status</th>
-                <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Owner</th>
-                <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Message Id</th>
-                <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Supplier</th>
-                <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Received On</th>
-                <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Updated At</th>
+                <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Request / Document ID
+                </th>
+                <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Lot Id
+                </th>
+                <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Part Number
+                </th>
+                <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Plant ID/Email
+                </th>
+                <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Subject / Document Name
+                </th>
+                <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <div>Status</div>
+                  <div className="text-[0.65rem] font-normal normal-case">(PDF to XML Conversion)</div>
+                </th>
+                <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Approval Status
+                </th>
+                <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Owner
+                </th>
+                <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Supplier
+                </th>
+                <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Received On
+                </th>
+                <th className="px-2 py-2 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Updated At
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -125,13 +153,9 @@ export function RequestsTable({
                       <MultipleOwnersDisplay owners={item.owner ? [item.owner] : []} />
                     )}
                   </td>
+                 
                    <td className="px-2 py-2">
-                    {!isChild && (
-                      <>abc123</>
-                    )}
-                  </td>
-                   <td className="px-2 py-2">
-                    {!isChild && (
+                    {isChild && (
                       <>John </>
                     )}
                   </td>

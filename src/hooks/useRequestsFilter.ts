@@ -1,56 +1,28 @@
 import { useState, useMemo } from "react";
-import { Request } from "@/types";
+import { Request, User as UserType } from "@/types";
 
 interface UseRequestsFilterProps {
   initialRequests: Request[];
   itemsPerPage: number;
+  columnFilters: Record<string, string>;
 }
 
-export const useRequestsFilter = ({ initialRequests, itemsPerPage }: UseRequestsFilterProps) => {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [approvalStatusFilter, setApprovalStatusFilter] = useState<string>("all");
-  const [ownerFilter, setOwnerFilter] = useState<string>("all");
-  const [plantIdFilter, setPlantIdFilter] = useState<string>("all");
-  const [partNumberFilter, setPartNumberFilter] = useState<string>("all");
+export const useRequestsFilter = ({
+  initialRequests,
+  itemsPerPage,
+  columnFilters,
+}: UseRequestsFilterProps) => {
   const [currentPage, setCurrentPage] = useState(1);
 
   const filteredRequests = useMemo(() => {
     return initialRequests.filter(request => {
-      const matchesSearch =
-        request.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        request.document_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        request.initiator_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (request.plant_id && request.plant_id.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (request.part_number && request.part_number.toLowerCase().includes(searchTerm.toLowerCase()));
-
-      const matchesStatus = statusFilter === "all" || request.status === statusFilter;
-      const matchesApprovalStatus = approvalStatusFilter === "all" || request.owner_status === approvalStatusFilter;
-      const matchesOwner =
-        ownerFilter === "all" ||
-        (ownerFilter === "unassigned" && !request.owner) ||
-        (request.owner && request.owner.toLowerCase().includes(ownerFilter.toLowerCase()));
-      const matchesPlantId = plantIdFilter === "all" || request.plant_id === plantIdFilter;
-      const matchesPartNumber = partNumberFilter === "all" || request.part_number === partNumberFilter;
-
-      return (
-        matchesSearch &&
-        matchesStatus &&
-        matchesApprovalStatus &&
-        matchesOwner &&
-        matchesPlantId &&
-        matchesPartNumber
-      );
+      return Object.entries(columnFilters).every(([key, value]) => {
+        if (!value) return true;
+        const requestValue = (request as any)[key]?.toString().toLowerCase();
+        return requestValue?.includes(value.toLowerCase());
+      });
     });
-  }, [
-    initialRequests,
-    searchTerm,
-    statusFilter,
-    approvalStatusFilter,
-    ownerFilter,
-    plantIdFilter,
-    partNumberFilter,
-  ]);
+  }, [initialRequests, columnFilters]);
 
   const totalItems = filteredRequests.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
@@ -62,21 +34,8 @@ export const useRequestsFilter = ({ initialRequests, itemsPerPage }: UseRequests
   }, [filteredRequests, currentPage, itemsPerPage]);
 
   return {
-    searchTerm,
-    setSearchTerm,
-    statusFilter,
-    setStatusFilter,
-    approvalStatusFilter,
-    setApprovalStatusFilter,
-    ownerFilter,
-    setOwnerFilter,
-    plantIdFilter,
-    setPlantIdFilter,
-    partNumberFilter,
-    setPartNumberFilter,
     currentPage,
     setCurrentPage,
-    filteredRequests,
     paginatedRequests,
     totalItems,
     totalPages,
